@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/.."
+set -euxo pipefail
+
+isort remoteprotocols #tests
+black --safe remoteprotocols #tests
+pylint remoteprotocols
+flake8 remoteprotocols
+mypy remoteprotocols
+#pytest tests
+python -m remoteprotocols validate-protocol remoteprotocols/protocol/protocols.yaml

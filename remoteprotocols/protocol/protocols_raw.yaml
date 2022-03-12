@@ -1,0 +1,41 @@
+pronto:
+  desc: Pronto raw code
+  type: IR
+  link:
+    - http://remotecentral.com/
+  args:
+    - name: data
+      type: uint16[]
+      desc: Raw code to send, specified as a string
+      example: '"0000 006D 0010 0000 0008 0020 0008 0046 000A 0020 0008 0020 0008 001E 000A 001E 000A 0046 000A 001E 0008 0020 0008 0020 0008 0046 000A 0046 000A 0046 000A 001E 000A 001E 0008 06C3"'
+      schema:
+        split: " "
+        hex_string:
+
+raw:
+  desc: Raw remote code
+  type: IR/RF
+  args:
+    - name: code
+      type: int32_t[] # TODO alternative in time_period
+      desc: |
+        The raw code to send as a list of integers.
+        Positive numbers represent a digital high signal and
+        negative numbers a digital low signal.
+        The number itself encodes how long the signal should last (in microseconds).
+      example: |
+        [4088, -1542, 1019, -510, 513, -1019, 510, -509, 511, -510, 1020,
+        -1020, 1022, -1019, 510, -509, 511, -510, 511, -509, 511, -510,
+        1020, -1019, 510, -511, 1020, -510, 512, -508, 510, -1020, 1022,
+        -1021, 1019, -1019, 511, -510, 510, -510, 1022, -1020, 1019,
+        -1020, 511, -511, 1018, -1022, 1020, -1019, 1021, -1019, 1020,
+        -511, 510, -1019, 1023, -1019, 1019, -510, 512, -508, 510, -511,
+        512, -1019, 510, -509]
+      schema:
+        Length:
+          min: 1
+        alternating_signs:
+    - name: carrier_frequency
+      type: uint32 #TODO allow Hz uint
+      default: 0
+      desc: Frequency to send the signal with (for infrared signals)

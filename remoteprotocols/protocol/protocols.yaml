@@ -1,0 +1,921 @@
+#
+#  COMMON PROTOCOL DEFINITION
+#
+# Definition of all possible protocols for all platform.
+# If a platform supports a protocol it must adhere to this definition,
+# otherwise it is a new protocol and must be added here.
+# This warrantees a uniform meaning among platforms
+#
+# This is used to:
+#   - validate command strings in ESPHome and Home Assistant
+#   - generate c++ helpers
+#   - generate documentation
+#
+# Supported data types:
+# - uint
+# - uint8
+# - uint16
+# - uint32
+# - uint64
+# - int
+# - int32
+# - string
+# - float
+# - bool
+# any can be an array appending '[]' at the end
+# This data types are automatically converted and validated
+#
+# Additional schema validations can be expressed as keys in the schema.
+# Each key is a voluptuous validator.
+# Positional arguments are defined as an array in ´args´ key.
+# Keywords arguments as key/values
+#
+# Multiple validators are treated as ´All´ must apply.
+#
+# Supported validators
+# - range
+# - one_of
+#
+# custom:
+# - proto_pronto (check string of hex well formatted)
+# - alternating_sign (check alternating positive/negative in array)
+# - binary_string (check string is a sequence of 0/1)
+
+coolix:
+  desc: Coolix 24-bit IR code
+  type: IR
+  args:
+    - name: data
+      print: 04X
+      desc: Code to send
+      max: 0xFFFFFF
+  timings:
+    unit: 560
+    frequency: 38000
+    one: [1, -3]
+    zero: [1, -1]
+    header: [8, -8]
+    footer: [1, -10]
+    mark: [1]
+  pattern:
+    data: header {data>>16 MSB 8}{~data>>16 MSB 8}{data>>8 MSB 8}{~data>>8 MSB 8}{data MSB 8}{~data MSB 8}
+    mid: footer
+    post: mark
+    repeat: 2
+
+dish:
+  desc: Dish Network IR code
+  type: IR
+  args:
+    - name: command
+      desc: Command to send
+      print: 0
+      max: 63
+    - name: receiver
+      desc: Receiver ID to target
+      print: 0
+      default: 1
+      min: 1
+      max: 16
+  timings:
+    frequency: 57600
+    header: [400, -6100]
+    one: [400, -1700]
+    zero: [400, -2800]
+
+  pattern:
+    data: header {command MSB 6}{receiver-1 LSB 4}{0 LSB 6}
+    post: header
+    repeat_send: 4
+
+jvc:
+  desc: JVC IR code
+  type: IR
+  args:
+    - name: data
+      desc: JVC code to send
+      max: 16bits
+  timings:
+    frequency: 38000
+    header: [8400, -4200]
+    one: [525, -1725]
+    zero: [400, -525]
+    mark: [8400]
+
+  pattern:
+    data: header {data MSB 16}
+    post: mark
+
+lg:
+  desc: LG IR code
+  type: IR
+  args:
+    - name: data
+      desc: LG code to send
+      max: 32bits
+    - name: nbits
+      desc: Number of bits to send (28 or 32)
+      print: 0
+      default: 28
+      max: 32
+      values: [28, 32]
+  timings:
+    frequency: 38000
+    header: [8000, -4000]
+    one: [600, -1600]
+    zero: [600, -550]
+    mark: [600]
+  pattern:
+    data: header {data MSB nbits}
+    post: mark
+
+midea:
+  desc: Midea 48-bit IR code. 8-bit checksum added automatically
+  type: IR
+  args:
+    - name: code
+      desc: 48-bit Midea code to send as list of 5 hex/integers
+      max: 48bits
+  timings:
+    unit: 560
+    frequency: 38000
+    header: [8, -8]
+    one: [1, -3]
+    zero: [1, -1]
+    footer: [1, -10]
+    mark: [1]
+  pattern: header {code MSB 48} footer header {~code MSB 48} mark
+
+nec:
+  desc: NEC IR code (in LSB form)
+  type: IR
+  args:
+    - name: address
+      max: 16bits
+      desc: Address to send
+      print: 04X
+    - name: command
+      max: 16bits
+      desc: NEC command to send
+      print: 04X
+  timings:
+    frequency: 38000
+    unit: 1
+    one: [560, -1690]
+    zero: [560, -560]
+    header: [9000, -4500]
+    footer: [560]
+
+  pattern: header {address LSB 16} {command LSB 16} footer
+
+nexa:
+  desc: Nexa RF code
+  type: RF
+  args:
+    - name: device
+      desc: Nexa device code
+      max: 32bits
+    - name: group
+      desc: Nexa group code
+      max: 1
+    - name: state
+      desc: Nexa state code to send (0-OFF, 1-ON, 2-DIMMER LEVEL)
+      max: 2
+    - name: channel
+      desc: Nexa channel code
+      max: 0xF
+    - name: level
+      desc: Nexa level code
+      max: 8bits
+
+  timings:
+    frequency: 0
+    unit: 250
+    one: [1, -5, 1, -1]
+    zero: [1, -1, 1, -5]
+    sync: [1, -10]
+    state2: [1, -1, 1, -1]
+    footer: [1, -1]
+
+  pattern: |
+    sync 
+    {device LSB 26} {group LSB 1} 
+    (state = 2 ? state2 : {state LSB 1}) 
+    {channel MSB 4}  
+    (state = 2 ? {level MSB 4}) 
+    footer
+
+panasonic:
+  desc: Panasonic IR code
+  type: IR
+  args:
+    - name: address
+      max: 16bits
+      desc: Address to send
+      example: 0x1FEF
+    - name: command
+      max: 32bits
+      desc: NEC command to send
+      example: 0x1F3E065F
+
+  timings:
+    frequency: 35000
+    one: [502, -1244]
+    zero: [502, -400]
+    header: [3502, -1750]
+    mark: [502]
+
+  pattern: header {address MSB 16} {command MSB 32} mark
+
+pioneer:
+  desc: Pioneer IR code
+  type: IR
+  note: |
+    Note that repeat is still optional, however Pioneer devices may require
+    that a given code is received multiple times before they will act on it.
+
+    If unable to find your specific device in the documentation,
+    find a device in the same class; the codes are largely shared among devices within a given class.
+  link:
+    - https://www.pioneerelectronics.com/PUSA/Support/Home-Entertainment-Custom-Install/IR+Codes
+  args:
+    - name: rc_code_1
+      max: 16bits
+      desc: Remote control code
+      example: 0xA556
+    - name: rc_code_2
+      max: 16bits
+      default: 0
+      example: 0xA506
+      desc: Secondary remote control code. Some code are sent in two parts
+
+  timings:
+    frequency: 40000
+    one: [560, -1690]
+    zero: [560, -560]
+    header: [9000, -4500]
+    mark: [-25500]
+
+  pattern: |
+    {rc_code_1>>8 MSB 8}{~rc_code_1>>8 MSB 8}{rc_code_1 LSB 8}
+    mark
+    (rc_code_2 > 0 ? 
+      {rc_code_2>>8 MSB 8}{~rc_code_2>>8 MSB 8}{rc_code_2 LSB 8}
+      mark
+    )
+
+rc5:
+  desc: RC5 IR code
+  type: IR
+  args:
+    - name: address
+      desc: Address to send
+      example: 0x1F
+      max: 0x1F
+    - name: command
+      desc: RC5 command to send
+      example: 0x3F
+      max: 0x7F
+  timings:
+    frequency: 36000
+    unit: 889
+    one: [-1, 1]
+    zero: [1, -1]
+
+  pattern: |
+    { 0b1 MSB 1}
+    {~command >> 6 MSB 1} 
+    {_toggle MSB 1}
+    {address MSB 5} 
+    {command MSB 6}
+
+rc_switch:
+  desc: RC switch data with preset
+  type: IR
+  args:
+    - name: data
+      desc: Raw code to send
+      example: 0b001010011001111101011011
+      max: 64bits
+    - name: nbits
+      desc: Number of bits of data to transmit
+      example: 64
+      min: 1
+      max: 64
+    - name: preset
+      desc: Preset number 1-8 or 0 for custom durations
+      default: 1
+      example: 4
+      min: 0
+      max: 8
+    - name: sync_high
+      min: -0x80000000
+      max: 32bits
+      desc: Sync High duration (for Preset 0)
+      default: 0
+    - name: sync_low
+      min: -0x80000000
+      max: 32bits
+      desc: Sync Low duration (for Preset 0)
+      default: 0
+    - name: one_high
+      min: -0x80000000
+      max: 32bits
+      desc: One High duration (for Preset 0)
+      default: 0
+    - name: one_low
+      min: -0x80000000
+      max: 32bits
+      desc: One Low duration (for Preset 0)
+      default: 0
+    - name: zero_high
+      min: -0x80000000
+      max: 32bits
+      desc: Zero High duration (for Preset 0)
+      default: 0
+    - name: zero_low
+      min: -0x80000000
+      max: 32bits
+      desc: Zero Low duration (for Preset 0)
+      default: 0
+
+  preset: preset
+  timings:
+    # custom
+    - frequency: 0
+      sync: [sync_high, sync_low]
+      zero: [zero_high, zero_low]
+      one: [one_high, one_low]
+    # preset 1
+    - frequency: 0
+      sync: [350, -10850]
+      zero: [350, -1050]
+      one: [1050, -350]
+    # preset 2
+    - frequency: 0
+      sync: [650, -6500]
+      zero: [650, -1300]
+      one: [1300, -650]
+    # preset 3
+    - frequency: 0
+      sync: [3000, -7100]
+      zero: [400, -1100]
+      one: [900, -600]
+    # preset 4
+    - frequency: 0
+      sync: [380, -2280]
+      zero: [380, -1140]
+      one: [1140, -380]
+    # preset 5
+    - frequency: 0
+      sync: [3000, -7000]
+      zero: [500, -1000]
+      one: [1000, -500]
+    # preset 6
+    - frequency: 0
+      sync: [-10350, 450]
+      zero: [-450, 900]
+      one: [-900, 450]
+    # preset 7
+    - frequency: 0
+      sync: [300, -9300]
+      zero: [150, -900]
+      one: [900, -150]
+    # preset 8
+    - frequency: 0
+      sync: [250, -2500]
+      zero: [250, -1250]
+      one: [250, -250]
+  pattern: sync {data MSB nbits}
+
+rc_switch_a:
+  desc: RC Switch Type A (10 pole DIP switch)
+  type: IR
+  args:
+    - name: group
+      desc: Group
+      example: 0b10101
+      max: 0b11111
+    - name: device
+      desc: Device
+      example: 0b11100
+      max: 0b11111
+    - name: state
+      desc: State
+      example: 1
+      max: 1
+    - name: preset
+      desc: Preset number 1-8 or 0 for custom durations
+      default: 1
+      example: 5
+      min: 0
+      max: 8
+    - name: sync_high
+      min: -0x80000000
+      max: 32bits
+      desc: Sync High duration (for Preset 0)
+      default: 0
+    - name: sync_low
+      min: -0x80000000
+      max: 32bits
+      desc: Sync Low duration (for Preset 0)
+      default: 0
+    - name: one_high
+      min: -0x80000000
+      max: 32bits
+      desc: One High duration (for Preset 0)
+      default: 0
+    - name: one_low
+      min: -0x80000000
+      max: 32bits
+      desc: One Low duration (for Preset 0)
+      default: 0
+    - name: zero_high
+      min: -0x80000000
+      max: 32bits
+      desc: Zero High duration (for Preset 0)
+      default: 0
+    - name: zero_low
+      min: -0x80000000
+      max: 32bits
+      desc: Zero Low duration (for Preset 0)
+      default: 0
+  preset: preset
+  timings:
+    # Type A uses tristate:
+    #   0 -> 00
+    #   1 -> 01
+
+    # custom
+    - frequency: 0
+      sync: [sync_high, sync_low]
+      zero: [zero_high, zero_low, zero_high, zero_low]
+      one: [zero_high, zero_low, one_high, one_low]
+    # preset 1
+    - frequency: 0
+      sync: [350, -10850]
+      zero: [350, -1050, 350, -1050]
+      one: [350, -1050, 1050, -350]
+    # preset 2
+    - frequency: 0
+      sync: [650, -6500]
+      zero: [650, -1300, 650, -1300]
+      one: [650, -1300, 1300, -650]
+    # preset 3
+    - frequency: 0
+      sync: [3000, -7100]
+      zero: [400, -1100, 400, -1100]
+      one: [400, -1100, 900, -600]
+    # preset 4
+    - frequency: 0
+      sync: [380, -2280]
+      zero: [380, -1140, 380, -1140]
+      one: [380, -1140, 1140, -380]
+    # preset 5
+    - frequency: 0
+      sync: [3000, -7000]
+      zero: [500, -1000, 500, -1000]
+      one: [500, -1000, 1000, -500]
+    # preset 6
+    - frequency: 0
+      sync: [-10350, 450]
+      zero: [-450, 900, -450, 900]
+      one: [-450, 900, -900, 450]
+    # preset 7
+    - frequency: 0
+      sync: [300, -9300]
+      zero: [150, -900, 150, -900]
+      one: [150, -900, 900, -150]
+    # preset 8
+    - frequency: 0
+      sync: [250, -2500]
+      zero: [250, -1250, 250, -1250]
+      one: [250, -1250, 250, -250]
+  pattern: >
+    sync 
+    {~group MSB 5}
+    {~device MSB 5}
+    {state+1 LSB 2}
+
+rc_switch_b:
+  desc: RC Switch Type B (two rotary/sliding switches with four setting)
+  type: IR
+  args:
+    - name: address
+      desc: Address
+      example: 2
+      min: 1
+      max: 4
+    - name: channel
+      desc: Channel
+      example: 3
+      min: 1
+      max: 4
+    - name: state
+      desc: State
+      example: 1
+      max: 1
+    - name: preset
+      desc: Preset number 1-8 or 0 for custom durations
+      default: 1
+      example: 1
+      min: 0
+      max: 8
+    - name: sync_high
+      min: -0x80000000
+      max: 32bits
+      desc: Sync High duration (for Preset 0)
+      default: 0
+    - name: sync_low
+      min: -0x80000000
+      max: 32bits
+      desc: Sync Low duration (for Preset 0)
+      default: 0
+    - name: one_high
+      min: -0x80000000
+      max: 32bits
+      desc: One High duration (for Preset 0)
+      default: 0
+    - name: one_low
+      min: -0x80000000
+      max: 32bits
+      desc: One Low duration (for Preset 0)
+      default: 0
+    - name: zero_high
+      min: -0x80000000
+      max: 32bits
+      desc: Zero High duration (for Preset 0)
+      default: 0
+    - name: zero_low
+      min: -0x80000000
+      max: 32bits
+      desc: Zero Low duration (for Preset 0)
+      default: 0
+  preset: preset
+  timings:
+    # Type B uses tristate:
+    #   0 -> 00
+    #   1 -> 01
+
+    # custom
+    - frequency: 0
+      sync: [sync_high, sync_low]
+      zero: [zero_high, zero_low, zero_high, zero_low]
+      one: [zero_high, zero_low, one_high, one_low]
+    # preset 1
+    - frequency: 0
+      sync: [350, -10850]
+      zero: [350, -1050, 350, -1050]
+      one: [350, -1050, 1050, -350]
+    # preset 2
+    - frequency: 0
+      sync: [650, -6500]
+      zero: [650, -1300, 650, -1300]
+      one: [650, -1300, 1300, -650]
+    # preset 3
+    - frequency: 0
+      sync: [3000, -7100]
+      zero: [400, -1100, 400, -1100]
+      one: [400, -1100, 900, -600]
+    # preset 4
+    - frequency: 0
+      sync: [380, -2280]
+      zero: [380, -1140, 380, -1140]
+      one: [380, -1140, 1140, -380]
+    # preset 5
+    - frequency: 0
+      sync: [3000, -7000]
+      zero: [500, -1000, 500, -1000]
+      one: [500, -1000, 1000, -500]
+    # preset 6
+    - frequency: 0
+      sync: [-10350, 450]
+      zero: [-450, 900, -450, 900]
+      one: [-450, 900, -900, 450]
+    # preset 7
+    - frequency: 0
+      sync: [300, -9300]
+      zero: [150, -900, 150, -900]
+      one: [150, -900, 900, -150]
+    # preset 8
+    - frequency: 0
+      sync: [250, -2500]
+      zero: [250, -1250, 250, -1250]
+      one: [250, -1250, 250, -250]
+  pattern: |
+    sync 
+    (address<3 ? {address LSB 4} : {00 LSB 2}{address-2 LSB 2})
+    (channel<3 ? {channel LSB 4} : {00 LSB 2}{channel-2 LSB 2})
+    {0b111 MSB 3}
+    {state MSB 1}
+
+rc_switch_c:
+  desc: RC Switch Type C (Intertechno)
+  type: IR
+  args:
+    - name: family
+      desc: Family A=0 to P=15
+      min: 0
+      max: 15
+    - name: device
+      desc: Device
+      min: 1
+      max: 4
+    - name: group
+      desc: Group
+      min: 1
+      max: 4
+    - name: state
+      desc: State
+      max: 1
+    - name: preset
+      desc: Preset number 1-8 or 0 for custom durations
+      default: 1
+      example: 7
+      min: 0
+      max: 8
+    - name: sync_high
+      min: -0x80000000
+      max: 32bits
+      desc: Sync High duration (for Preset 0)
+      default: 0
+    - name: sync_low
+      min: -0x80000000
+      max: 32bits
+      desc: Sync Low duration (for Preset 0)
+      default: 0
+    - name: one_high
+      min: -0x80000000
+      max: 32bits
+      desc: One High duration (for Preset 0)
+      default: 0
+    - name: one_low
+      min: -0x80000000
+      max: 32bits
+      desc: One Low duration (for Preset 0)
+      default: 0
+    - name: zero_high
+      min: -0x80000000
+      max: 32bits
+      desc: Zero High duration (for Preset 0)
+      default: 0
+    - name: zero_low
+      min: -0x80000000
+      max: 32bits
+      desc: Zero Low duration (for Preset 0)
+      default: 0
+  preset: preset
+  timings:
+    # Type C uses tristate:
+    #   0 -> 00
+    #   1 -> 01
+
+    # custom
+    - frequency: 0
+      sync: [sync_high, sync_low]
+      zero: [zero_high, zero_low, zero_high, zero_low]
+      one: [zero_high, zero_low, one_high, one_low]
+    # preset 1
+    - frequency: 0
+      sync: [350, -10850]
+      zero: [350, -1050, 350, -1050]
+      one: [350, -1050, 1050, -350]
+    # preset 2
+    - frequency: 0
+      sync: [650, -6500]
+      zero: [650, -1300, 650, -1300]
+      one: [650, -1300, 1300, -650]
+    # preset 3
+    - frequency: 0
+      sync: [3000, -7100]
+      zero: [400, -1100, 400, -1100]
+      one: [400, -1100, 900, -600]
+    # preset 4
+    - frequency: 0
+      sync: [380, -2280]
+      zero: [380, -1140, 380, -1140]
+      one: [380, -1140, 1140, -380]
+    # preset 5
+    - frequency: 0
+      sync: [3000, -7000]
+      zero: [500, -1000, 500, -1000]
+      one: [500, -1000, 1000, -500]
+    # preset 6
+    - frequency: 0
+      sync: [-10350, 450]
+      zero: [-450, 900, -450, 900]
+      one: [-450, 900, -900, 450]
+    # preset 7
+    - frequency: 0
+      sync: [300, -9300]
+      zero: [150, -900, 150, -900]
+      one: [150, -900, 900, -150]
+    # preset 8
+    - frequency: 0
+      sync: [250, -2500]
+      zero: [250, -1250, 250, -1250]
+      one: [250, -1250, 250, -250]
+  pattern: |
+    sync 
+    {family LSB 4}
+    {device-1 LSB 2}
+    {group-1 LSB 2}
+    {0b111 MSB 3}
+    {state MSB 1}
+
+rc_switch_d:
+  desc: RC Switch Type D (Status)
+  type: IR
+  args:
+    - name: group
+      desc: Group
+      min: 1
+      max: 4
+    - name: device
+      desc: Device
+      min: 1
+      max: 3
+    - name: state
+      desc: State
+      max: 1
+    - name: preset
+      desc: Preset number 1-8 or 0 for custom durations
+      example: 7
+      min: 0
+      max: 8
+    - name: sync_high
+      min: -0x80000000
+      max: 32bits
+      desc: Sync High duration (for Preset 0)
+      default: 0
+    - name: sync_low
+      min: -0x80000000
+      max: 32bits
+      desc: Sync Low duration (for Preset 0)
+      default: 0
+    - name: one_high
+      min: -0x80000000
+      max: 32bits
+      desc: One High duration (for Preset 0)
+      default: 0
+    - name: one_low
+      min: -0x80000000
+      max: 32bits
+      desc: One Low duration (for Preset 0)
+      default: 0
+    - name: zero_high
+      min: -0x80000000
+      max: 32bits
+      desc: Zero High duration (for Preset 0)
+      default: 0
+    - name: zero_low
+      min: -0x80000000
+      max: 32bits
+      desc: Zero Low duration (for Preset 0)
+      default: 0
+  preset: preset
+  timings:
+    # custom
+    - frequency: sync_low
+      sync: [sync_high, sync_low]
+      zero: [zero_high, zero_low, zero_high, zero_low]
+      one: [zero_high, zero_low, one_high, one_low]
+    # preset 1
+    - frequency: 0
+      sync: [350, -10850]
+      zero: [350, -1050]
+      one: [1050, -350]
+    # preset 2
+    - frequency: 0
+      sync: [650, -6500]
+      zero: [650, -1300]
+      one: [1300, -650]
+    # preset 3
+    - frequency: 0
+      sync: [3000, -7100]
+      zero: [400, -1100]
+      one: [900, -600]
+    # preset 4
+    - frequency: 0
+      sync: [380, -2280]
+      zero: [380, -1140]
+      one: [1140, -380]
+    # preset 5
+    - frequency: 0
+      sync: [3000, -7000]
+      zero: [500, -1000]
+      one: [1000, -500]
+    # preset 6
+    - frequency: 0
+      sync: [-10350, 450]
+      zero: [-450, 900]
+      one: [-900, 450]
+    # preset 7
+    - frequency: 0
+      sync: [300, -9300]
+      zero: [150, -900]
+      one: [900, -150]
+    # preset 8
+    - frequency: 0
+      sync: [250, -2500]
+      zero: [250, -1250]
+      one: [250, -250]
+  pattern: |
+    sync
+    (group=1 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (group=2 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (group=3 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (group=4 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (device=1 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (device=2 ? {0b11 MSB 2} : {0b01 MSB 2})
+    (device=3 ? {0b11 MSB 2} : {0b01 MSB 2})
+    {0b0 MSB 6}
+    {state MSB 1}{state MSB 1}{~state MSB 1}{~state MSB 1}
+    (state > 0 ? {0b1100 MSB 4} : {0b0011 MSB 4})
+
+samsung:
+  desc: Samsung IR code. 32 bits
+  type: IR
+  args:
+    - name: address
+      desc: Customer code
+      max: 8bits
+      example: 0xAA
+    - name: command
+      desc: Command code
+      example: 48
+      max: 8bits
+  timings:
+    frequency: 38000
+    header: [4500, -4500]
+    one: [560, -1690]
+    zero: [560, -560]
+    footer: [560, -560]
+  pattern: header {address LSB 8}{address LSB 8}{command LSB 8}{~command LSB 8} footer
+
+samsung36:
+  desc: Samsumg36 IR code.  It transmits the address and command in two packets separated by a “space”.
+  type: IR
+  args:
+    - name: address
+      desc: Address to send
+      max: 16bits
+      example: 0x0400
+    - name: command
+      desc: Samsung36 command to send
+      example: 0x000E00FF
+      max: 0xFFFFF
+  timings:
+    frequency: 38000
+    header: [4500, -4500]
+    one: [500, -1500]
+    zero: [500, -500]
+    middle: [500, -4500]
+    footer: [500, -5900]
+  pattern: header {address MSB 16} middle {command MSB 20} footer
+
+sony:
+  desc: Sony IR code
+  type: IR
+  args:
+    - name: data
+      desc: Code to send
+      max: 32bits
+      example: 0x123
+    - name: nbits
+      desc: Number of bits to send (12, 15 or 20)
+      print: 0
+      max: 20
+      example: 12
+      default: 12
+      values: [12, 15, 20]
+  timings:
+    frequency: 40000
+    header: [2400, -600]
+    one: [1200, -600]
+    zero: [600, -600]
+  pattern: header {data MSB nbits}
+
+toshiba_ac:
+  desc: Toshiba AC IR code
+  type: IR
+  args:
+    - name: rc_code_1
+      desc: Remote control code
+      example: 0xB24DBF4040BF
+      max: 48bits
+    - name: rc_code_2
+      max: 48bits
+      default: 0
+      example: 0xD5660001003C
+      desc: Secondary remote control code. Some code are sent in two parts
+  timings:
+    frequency: 38000
+    header: [4500, -45000]
+    one: [560, -1690]
+    zero: [560, -560]
+    footer: [560, -4500]
+    mark: [5500]
+  pattern: |
+    header {rc_code_1 MSB 48} footer header {rc_code_1 MSB 48} footer  
+    (rc_code_2 > 0 ? {rc_code_2 MSB 48} footer)
