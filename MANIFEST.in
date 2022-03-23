@@ -1,3 +1,4 @@
 include LICENSE
 include requirements.txt
 include remoteprotocols/py.typed
+include remoteprotocols/codecs/protocols.yaml

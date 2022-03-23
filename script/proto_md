@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")/.."
+
+python -m remoteprotocols list -m  > PROTOCOLS.md
+python -m remoteprotocols list -m -v >> PROTOCOLS.md
