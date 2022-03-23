@@ -1,45 +1,7 @@
 #
 #  COMMON PROTOCOL DEFINITION
 #
-# Definition of all possible protocols for all platform.
-# If a platform supports a protocol it must adhere to this definition,
-# otherwise it is a new protocol and must be added here.
-# This warrantees a uniform meaning among platforms
-#
-# This is used to:
-#   - validate command strings in ESPHome and Home Assistant
-#   - generate c++ helpers
-#   - generate documentation
-#
-# Supported data types:
-# - uint
-# - uint8
-# - uint16
-# - uint32
-# - uint64
-# - int
-# - int32
-# - string
-# - float
-# - bool
-# any can be an array appending '[]' at the end
-# This data types are automatically converted and validated
-#
-# Additional schema validations can be expressed as keys in the schema.
-# Each key is a voluptuous validator.
-# Positional arguments are defined as an array in ´args´ key.
-# Keywords arguments as key/values
-#
-# Multiple validators are treated as ´All´ must apply.
-#
-# Supported validators
-# - range
-# - one_of
-#
-# custom:
-# - proto_pronto (check string of hex well formatted)
-# - alternating_sign (check alternating positive/negative in array)
-# - binary_string (check string is a sequence of 0/1)
+# Definition of all supported protocols.
 
 coolix:
   desc: Coolix 24-bit IR code
@@ -231,11 +193,10 @@ pioneer:
   desc: Pioneer IR code
   type: IR
   note: |
-    Note that repeat is still optional, however Pioneer devices may require
-    that a given code is received multiple times before they will act on it.
+    Pioneer devices may require that a given code is received multiple times before they will act on it.
 
     If unable to find your specific device in the documentation,
-    find a device in the same class; the codes are largely shared among devices within a given class.
+    find a device in the same class, as the codes are largely shared among devices within a given class.
   link:
     - https://www.pioneerelectronics.com/PUSA/Support/Home-Entertainment-Custom-Install/IR+Codes
   args:
