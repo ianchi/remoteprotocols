@@ -106,12 +106,35 @@ class ProtocolRegistry:
 
         return cmd
 
-    def decode(self, signal: SignalData, tolerance: float = 0.25) -> list[DecodeMatch]:
-        """Decodes a signal and returns a list of all matching protcols and corresponding decoded arguments"""
+    def decode(
+        self,
+        signal: SignalData,
+        tolerance: float = 0.20,
+        protocols: Optional[list[str]] = None,
+    ) -> list[DecodeMatch]:
+        """Decodes a signal and returns a list of all matching protcols and corresponding decoded arguments.
+        It decodes into all known protocols or a filtered subset
+        """
 
         decoded: list[DecodeMatch] = []
 
         for proto in self.protocols.values():
-            decoded += proto.decode(signal, tolerance)
+            if not protocols or protocols.count(proto.name):
+                decoded += proto.decode(signal, tolerance)
 
         return decoded
+
+    def convert(
+        self,
+        command: str,
+        tolerance: float = 0.20,
+        protocols: Optional[list[str]] = None,
+    ) -> list[DecodeMatch]:
+        """Converts a given command into other protocols (all or filtered)"""
+
+        cmd = self.parse_command(command)
+        signal = cmd.protocol.encode(cmd.args)
+
+        matches = self.decode(signal, tolerance, protocols)
+
+        return matches

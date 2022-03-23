@@ -13,6 +13,7 @@ CMD_VALIDATE_PROTOCOL = "validate-protocol"
 CMD_VALIDATE_COMMAND = "validate-command"
 CMD_ENCODE = "encode"
 CMD_LIST = "list"
+CMD_CONVERT = "convert"
 
 REGISTRY = ProtocolRegistry()
 
@@ -25,6 +26,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "-v", "--version", help="Show version information.", action="store_true"
     )
     parser = argparse.ArgumentParser(
+        prog=const.PROGRAM_NAME,
         description=f"{const.PROGRAM_NAME} v{const.PROGRAM_VERSION}",
         parents=[options_parser],
     )
@@ -45,9 +47,32 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser_config.add_argument("commands", help="Command(s) to validate.", nargs="+")
 
     parser_config = subparsers.add_parser(
-        CMD_ENCODE, help="Encodes command string(s) into raw signal."
+        CMD_ENCODE, help="Encodes command string(s) into raw signal (durations)."
     )
     parser_config.add_argument("commands", help="Command(s) to encode.", nargs="+")
+
+    parser_config = subparsers.add_parser(
+        CMD_CONVERT, help="Converts command string(s) to other protocols."
+    )
+    parser_config.add_argument("commands", help="Command(s) to convert.", nargs="+")
+    parser_config.add_argument(
+        "-v",
+        "--verbose",
+        help="Show needed tolerance to convert.",
+        action="store_true",
+    )
+    parser_config.add_argument(
+        "-t",
+        "--tolerance",
+        help="Use specific max tolerance in convertion.",
+        nargs=1,
+    )
+    parser_config.add_argument(
+        "-p",
+        "--protocols",
+        help="Only convert to specified protocols, if applicable.",
+        nargs="+",
+    )
 
     parser_config = subparsers.add_parser(CMD_LIST, help="List supported protocols.")
     parser_config.add_argument(
@@ -108,17 +133,50 @@ def cmd_encode(commands: list[str]) -> int:
             cmd = REGISTRY.parse_command(command)
             signal = cmd.protocol.encode(cmd.args)
 
-            matches = REGISTRY.decode(signal, 0.20)
-            print("Sent: ", cmd.command)
-            print(signal)
+            duration = REGISTRY.get_protocol("duration")
+            if duration:
 
-            matches.sort(key=lambda x: x.tolerance)
-            for match in matches:
-                print(
-                    "Decoded: ",
-                    match.protocol.to_command(match.args),
-                    f"({(match.tolerance*100):.1f}% tol)",
-                )
+                match = duration.decode(signal)
+                if match:
+                    print(duration.to_command(match[0].args))
+
+            else:
+                print(signal)
+
+    except vol.Invalid as err:
+        log.error(err)
+        return 1
+
+    return 0
+
+
+def cmd_convert(
+    commands: list[str], verbose: bool, tolerance: list[str], protocols: list[str]
+) -> int:
+    """Runs the decode command"""
+
+    if not tolerance:
+        tol = 0.20
+    else:
+        tol = float(tolerance[0])
+    try:
+        for command in commands:
+            matches = REGISTRY.convert(command, tol, protocols)
+            print("Original: ", command)
+
+            if matches:
+                print("Convertions:")
+                matches.sort(key=lambda x: x.tolerance)
+                for match in matches:
+                    if verbose:
+                        print(
+                            match.protocol.to_command(match.args),
+                            f"({(match.tolerance*100):.1f}% tol)",
+                        )
+                    else:
+                        print(match.protocol.to_command(match.args))
+            else:
+                print("No match")
             print()
     except vol.Invalid as err:
         log.error(err)
@@ -175,6 +233,9 @@ def run(argv: list[str]) -> int:
 
     if args.command == CMD_ENCODE:
         return cmd_encode(args.commands)
+
+    if args.command == CMD_CONVERT:
+        return cmd_convert(args.commands, args.verbose, args.tolerance, args.protocols)
 
     if args.command == CMD_LIST:
         return cmd_list(args.verbose, args.protocols)
