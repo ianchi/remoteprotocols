@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "remoteprotocols",
             "justMyCode": true,
-            "args": ["encode", "samsung:0x1234:32"]
+            "args": ["encode", "miio:pWcAQgIwBpoRlCMoIxAAAAAAAAAAEBAQEBAQEAAQEAAAEBAAAAAQABAAABAA"]
 
         }
     ]

@@ -1,18 +1,13 @@
+"""Main program for command line utility"""
+
 import argparse
-import codecs
 import logging as log
-import pathlib
 import sys
-from typing import Any
 
 import voluptuous as vol  # type: ignore
-import yaml
 
-from remoteprotocols import const, encode
-from remoteprotocols.command import RemoteCommand
-from remoteprotocols.decoder import decode
-from remoteprotocols.protocol import validate_protocols
-from remoteprotocols.protocol.definition import ProtocolRegistry
+from remoteprotocols import const
+from remoteprotocols.registry import ProtocolRegistry
 
 CMD_VALIDATE_PROTOCOL = "validate-protocol"
 CMD_VALIDATE_COMMAND = "validate-command"
@@ -23,12 +18,15 @@ REGISTRY = ProtocolRegistry()
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
+    """Converts command line arguments in an object"""
+
     options_parser = argparse.ArgumentParser(add_help=False)
     options_parser.add_argument(
         "-v", "--version", help="Show version information.", action="store_true"
     )
     parser = argparse.ArgumentParser(
-        description=f"{const.program} v{const.version}", parents=[options_parser]
+        description=f"{const.PROGRAM_NAME} v{const.PROGRAM_VERSION}",
+        parents=[options_parser],
     )
 
     subparsers = parser.add_subparsers(
@@ -65,50 +63,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv[1:])
 
 
-def read_yaml(file: str) -> Any:
-    path = pathlib.Path(file).resolve()
-
-    try:
-        with codecs.open(path.as_posix(), "r", encoding="utf-8") as f_handle:
-            data = yaml.safe_load(f_handle)
-    except yaml.MarkedYAMLError as err:
-        mark = err.problem_mark
-        if mark:
-            log.error(
-                "Error parsing yaml file at [%i:%i]: %s",
-                mark.line + 1,
-                mark.column + 1,
-                err.problem,
-            )
-        else:
-            log.error(err)
-        return None
-    except yaml.YAMLError as err:
-        log.error(err)
-        return None
-
-    return data
-
-
-def load_protocols() -> None:
-    path = pathlib.Path(__file__).parent / const.PROTOCOLS_YAML
-    proto = read_yaml(path.as_posix())
-    proto = validate_protocols(proto)
-
-    REGISTRY.add_protocols(proto)
-
-
 def cmd_validate_protocol(files: list[str]) -> int:
+    """Runs validate-protocol command"""
 
     for file in files:
 
-        data = read_yaml(file)
-
-        if data is None:
-            return 1
         try:
-            proto = validate_protocols(data)
-            print(proto)
+            REGISTRY.load(file)
 
         except vol.MultipleInvalid as errs:
             log.error("Invalid format in file %s", file)
@@ -127,11 +88,11 @@ def cmd_validate_protocol(files: list[str]) -> int:
 
 
 def cmd_validate_command(commands: list[str]) -> int:
+    """Runs the validate command"""
 
     try:
-        for c in commands:
-            cmd = RemoteCommand(c)
-            cmd.validate(REGISTRY)
+        for cmd in commands:
+            REGISTRY.parse_command(cmd)
     except vol.Invalid as err:
         log.error(err)
         return 1
@@ -140,20 +101,25 @@ def cmd_validate_command(commands: list[str]) -> int:
 
 
 def cmd_encode(commands: list[str]) -> int:
+    """Runs the encode command"""
 
     try:
-        for c in commands:
-            cmd = RemoteCommand(c)
-            cmd.validate(REGISTRY)
-            signal = encode(cmd.protocol, cmd.args)
+        for command in commands:
+            cmd = REGISTRY.parse_command(command)
+            signal = cmd.protocol.encode(cmd.args)
 
-            match = decode(signal, REGISTRY, 0.20)
-            print(cmd.command)
+            matches = REGISTRY.decode(signal, 0.20)
+            print("Sent: ", cmd.command)
             print(signal)
 
-            for m in match:
-                print(m.protocol.to_command(m.args))
-
+            matches.sort(key=lambda x: x.tolerance)
+            for match in matches:
+                print(
+                    "Decoded: ",
+                    match.protocol.to_command(match.args),
+                    f"({(match.tolerance*100):.1f}% tol)",
+                )
+            print()
     except vol.Invalid as err:
         log.error(err)
         return 1
@@ -162,6 +128,7 @@ def cmd_encode(commands: list[str]) -> int:
 
 
 def cmd_list(verbose: bool, protocols: list[str]) -> int:
+    """Runs the list command"""
 
     if len(protocols) == 0:
         protocols = REGISTRY.list_protocols()
@@ -189,35 +156,35 @@ def cmd_list(verbose: bool, protocols: list[str]) -> int:
 
 
 def run(argv: list[str]) -> int:
+    """Runs the requested command"""
 
     if sys.version_info < (3, 8, 0):
-        log.error("You need Python 3.8+ to run %s", const.program)
+        log.error("You need Python 3.8+ to run %s", const.PROGRAM_NAME)
         return 1
 
     args = parse_args(argv)
 
     if args.version:
-        print(f"Version: {const.version}")
+        print(f"Version: {const.PROGRAM_VERSION}")
 
     if args.command == CMD_VALIDATE_PROTOCOL:
         return cmd_validate_protocol(args.files)
 
     if args.command == CMD_VALIDATE_COMMAND:
-        load_protocols()
         return cmd_validate_command(args.commands)
 
     if args.command == CMD_ENCODE:
-        load_protocols()
         return cmd_encode(args.commands)
 
     if args.command == CMD_LIST:
-        load_protocols()
         return cmd_list(args.verbose, args.protocols)
 
     return 0
 
 
 def main() -> int:
+    """Main entry point for command line"""
+
     log.basicConfig(format="%(levelname)s: %(message)s")
     try:
         return run(sys.argv)

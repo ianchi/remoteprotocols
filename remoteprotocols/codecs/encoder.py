@@ -1,13 +1,15 @@
-from remoteprotocols.protocol.definition import (
-    PatternDef,
-    ProtocolDef,
-    RuleDef,
-    SignalData,
-    TimingsDef,
-)
+"""Classes and functions to perform encoding"""
+
+from __future__ import annotations
+
+# pylint: disable=cyclic-import
+from remoteprotocols import codecs
 
 
-def encode_rule(rule: RuleDef, args: list[int], timings: TimingsDef) -> list[int]:
+def encode_rule(
+    rule: codecs.RuleDef, args: list[int], timings: codecs.TimingsDef
+) -> list[int]:
+    """Converts a single rule into signal pulses"""
 
     # Case named timings rule:
     if rule.type > 0:
@@ -40,8 +42,9 @@ def encode_rule(rule: RuleDef, args: list[int], timings: TimingsDef) -> list[int
 
 
 def encode_rules(
-    rules: list[RuleDef], args: list[int], timings: TimingsDef
+    rules: list[codecs.RuleDef], args: list[int], timings: codecs.TimingsDef
 ) -> list[int]:
+    """Converts a list of rules into signal pulses"""
     signal = []
 
     for rule in rules:
@@ -51,8 +54,9 @@ def encode_rules(
 
 
 def encode_pattern(
-    pattern: PatternDef, args: list[int], timings: TimingsDef
+    pattern: codecs.PatternDef, args: list[int], timings: codecs.TimingsDef
 ) -> list[int]:
+    """Converts a pattern into the corresponding signal"""
 
     result = []
 
@@ -73,20 +77,3 @@ def encode_pattern(
         result += encode_rules(pattern.post, args, timings)
 
     return result
-
-
-def encode_proto(proto: ProtocolDef, args: list[int]) -> SignalData:
-    proto._toggle ^= 1
-    args = [proto._toggle] + args
-
-    signal = SignalData()
-    preset = proto.preset.get(args)
-
-    if preset >= len(proto.timings):
-        return signal
-
-    timings = proto.timings[preset]
-
-    signal.frequency = timings.get_frequency(args)
-    signal.bursts = encode_pattern(proto.pattern, args, timings)
-    return signal

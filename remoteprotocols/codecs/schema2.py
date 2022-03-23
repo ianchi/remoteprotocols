@@ -1,11 +1,14 @@
 """Second pass of protocol validation, pattern parsing and convertion to class objects.
 """
+from __future__ import annotations
 
 from typing import Any, Union
 
 import voluptuous as vol  # type: ignore
 
-from .definition import ArgDef, PatternDef, ProtocolDef, RuleDef, TimingsDef, ValueOrArg
+from remoteprotocols.codecs import CodecDef, PatternDef, RuleDef, TimingsDef, ValueOrArg
+from remoteprotocols.protocol import ArgDef
+
 from .pattern import parse_pattern
 
 
@@ -25,6 +28,9 @@ def validate_arg_pass2(arg: dict[(str, Any)]) -> ArgDef:
 
 
 def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
+    """Validates a protocol definition at a integral level.
+    Validity of patterns and arguments references
+    """
 
     t_slots = list(proto["timings"][0])
     t_slots.remove("frequency")
@@ -59,8 +65,8 @@ def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
         vol.Required("zero"): [value_or_valid_arg],
     }
 
-    for g in t_slots:
-        t_schema[vol.Required(g)] = [value_or_valid_arg]
+    for slot in t_slots:
+        t_schema[vol.Required(slot)] = [value_or_valid_arg]
 
     # backup original string pattern
     proto["pattern_"] = proto["pattern"].copy()
@@ -95,10 +101,11 @@ def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
     )(proto)
 
 
-def protocol_class(value: dict[(str, Any)]) -> dict[str, ProtocolDef]:
+def protocol_class(value: dict[(str, Any)]) -> dict[str, CodecDef]:
+    """Converts to dict of CodecDef objects"""
     result = {}
 
     for name, proto in value.items():
-        result[name] = ProtocolDef(proto, name)
+        result[name] = CodecDef(proto, name)
 
     return result

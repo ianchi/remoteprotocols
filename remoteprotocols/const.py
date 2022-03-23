@@ -1,4 +1,6 @@
-program = "remotecodecs"
-version = "0.0.1"
+"""General constants"""
 
-PROTOCOLS_YAML = "protocol/protocols.yaml"
+PROGRAM_NAME = "remoteprotocols"
+PROGRAM_VERSION = "0.0.1"
+
+PROTOCOLS_YAML = "codecs/protocols.yaml"

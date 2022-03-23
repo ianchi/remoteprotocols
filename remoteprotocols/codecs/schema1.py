@@ -1,14 +1,14 @@
-# First pass of protocol schema validation, at element level
-# Validates basic structure and performs first type conversion and feeds it into
-# the second pass (at object level)
-
+"""First pass of protocol schema validation, at element level
+Validates basic structure and performs first type conversion and feeds it into
+the second pass (at object level)
+"""
 from typing import Any
 
 import voluptuous as vol  # type: ignore
 
 import remoteprotocols.validators as val
-from remoteprotocols.protocol.definition import TOGGLE_ARG
-from remoteprotocols.protocol.schema2 import (
+from remoteprotocols.codecs import TOGGLE_ARG
+from remoteprotocols.codecs.schema2 import (
     protocol_class,
     validate_arg_pass2,
     validate_protocol_pass2,

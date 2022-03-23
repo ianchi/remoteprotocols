@@ -9,4 +9,4 @@ pylint remoteprotocols
 flake8 remoteprotocols
 mypy remoteprotocols
 #pytest tests
-python -m remoteprotocols validate-protocol remoteprotocols/protocol/protocols.yaml
+python -m remoteprotocols validate-protocol remoteprotocols/codecs/protocols.yaml

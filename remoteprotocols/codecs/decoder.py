@@ -1,19 +1,18 @@
+"""Classes and functions to perform decoding"""
+
+from __future__ import annotations
+
 import copy
 from typing import Any, Optional, Tuple
 
-from remoteprotocols.protocol.definition import (
-    TOGGLE_DEF,
-    ArgDef,
-    ProtocolDef,
-    ProtocolRegistry,
-    RuleDef,
-    SignalData,
-    TimingsDef,
-    ValueOrArg,
-)
+# pylint: disable=cyclic-import
+from remoteprotocols import codecs
+from remoteprotocols.protocol import ArgDef, DecodeMatch, SignalData
 
 
 class DecodedArg:
+    """Auxiliary class to carry the partial/full decode status of an argument"""
+
     value: int = 0
     mask: int = 0
     decoded_mask: int = 0
@@ -25,12 +24,13 @@ class DecodedArg:
         self.mask = (1 << arg.max.bit_length()) - 1
         self.max = arg.max
         self.min = arg.min
-        if hasattr(arg, "values"):
+        if arg.values:
             self.values = arg.values
 
     def update(self, value: int, mask: Optional[int]) -> bool:
-
-        # if no mask, assume whole value is decoded
+        """Checks consistency of the new value against the already decoded part.
+        If valid, updates the known status
+        """
         if mask is None:
             mask = self.mask
         # check value is consistent with already decoded part
@@ -52,22 +52,23 @@ class DecodedArg:
 
 
 class DecodeState:
+    """Maintains intermediate decoding state"""
 
-    protocol: ProtocolDef
+    protocol: codecs.CodecDef
     signal: SignalData
     decoded: int = 0
     tolerance: float = 0.25
     used_tolerance: float = 0
 
     args: list[DecodedArg]
-    timings: TimingsDef
+    timings: codecs.TimingsDef
 
     def __init__(
         self,
-        proto: ProtocolDef,
+        proto: codecs.CodecDef,
         signal: SignalData,
         tolerance: float,
-        timings: TimingsDef,
+        timings: codecs.TimingsDef,
     ) -> None:
         self.signal = signal
         self.tolerance = tolerance
@@ -75,7 +76,7 @@ class DecodeState:
         self.protocol = proto
 
         # generate empty decoded args
-        empty_args = [DecodedArg(TOGGLE_DEF)]
+        empty_args = [DecodedArg(codecs.TOGGLE_DEF)]
         for arg in proto.args:
             empty_args.append(DecodedArg(arg))
         self.args = empty_args
@@ -86,28 +87,32 @@ class DecodeState:
         return dst
 
     def update(self, src: Any) -> None:
+        """Updates the current state with decoded information from a branching state,
+        copying the relevant attributes"""
         self.decoded = src.decoded
         self.args = src.args
 
-    def expect_burst(self, burst: list[int]) -> bool:
+    def expect_burst(self, bursts: list[int]) -> bool:
         """Check if the following burst of data coincide with the expected.
         If true advances the decoded reference.
         """
 
         decoded = self.decoded
-        if len(burst) == 0:
+        if len(bursts) == 0:
             return True
 
-        if len(burst) > (len(self.signal.bursts) - self.decoded):
+        if len(bursts) > (len(self.signal.bursts) - self.decoded):
             return False
 
-        for b in burst:
+        for burst in bursts:
             expect = self.signal.bursts[decoded]
             tolerance = self.tolerance if expect >= 0 else -self.tolerance
 
-            if expect * (1 - tolerance) <= b <= expect * (1 + tolerance):
+            if expect * (1 - tolerance) <= burst <= expect * (1 + tolerance):
                 decoded += 1
-                self.used_tolerance = max(self.used_tolerance, abs(b - expect) / expect)
+                self.used_tolerance = max(
+                    self.used_tolerance, abs(burst - expect) / expect
+                )
 
             else:
                 return False
@@ -115,7 +120,12 @@ class DecodeState:
         self.decoded = decoded
         return True
 
-    def read_data(self, expected_bits: ValueOrArg, lsb: bool) -> Tuple[bool, int, int]:
+    def read_data(
+        self, expected_bits: codecs.ValueOrArg, lsb: bool
+    ) -> Tuple[bool, int, int]:
+        """Tries to read data bits (zero/one) from the signal data.
+        Returns (valid, data, number of bits).
+        """
         data = 0
         bit = 0
         nbits = 0
@@ -146,35 +156,8 @@ class DecodeState:
         return (True, data, nbits)
 
 
-class DecodeMatch:
-    protocol: ProtocolDef
-    args: list[int]
-    missing_bits: list[int]
-    uniquematch: bool = True
-    toggle_bit: int
-    tolerance: float
-
-    def __repr__(self) -> str:
-        return self.__dict__.__str__()
-
-    def __init__(self, state: DecodeState) -> None:
-        self.protocol = state.protocol
-        self.args = []
-        self.missing_bits = []
-        self.tolerance = state.used_tolerance
-
-        self.toggle_bit = state.args[0].value
-        for arg in state.args[1:]:
-
-            # if any arg is incompletely decoded the match is not unique
-            if arg.decoded_mask != arg.mask:
-                self.uniquematch = False
-            self.args.append(arg.value)
-            self.missing_bits.append(arg.decoded_mask ^ arg.mask)
-
-
-# pylint:
-def decode_rule(self: DecodeState, rule: RuleDef) -> bool:
+def decode_rule(self: DecodeState, rule: codecs.RuleDef) -> bool:
+    """Tries to decode a specific rule in the current signal position"""
 
     decoded = self.decoded
 
@@ -202,9 +185,9 @@ def decode_rule(self: DecodeState, rule: RuleDef) -> bool:
         arg, mask = rule.invert_op(data, nbits)
 
         if rule.data.has_arg():
-            a = self.args[rule.data.arg]
+            tmp_arg = self.args[rule.data.arg]
         else:
-            a = DecodedArg(
+            tmp_arg = DecodedArg(
                 ArgDef(
                     {
                         "min": rule.data.value,
@@ -212,9 +195,9 @@ def decode_rule(self: DecodeState, rule: RuleDef) -> bool:
                     }
                 )
             )
-            a.update(rule.data.value, None)
+            tmp_arg.update(rule.data.value, None)
 
-        if not a.update(arg, mask):
+        if not tmp_arg.update(arg, mask):
             self.decoded = decoded
             return False
 
@@ -247,13 +230,15 @@ def decode_rule(self: DecodeState, rule: RuleDef) -> bool:
     return True
 
 
-def confirm_cond(rule: RuleDef, args: list[DecodedArg]) -> bool:
+def confirm_cond(rule: codecs.RuleDef, args: list[DecodedArg]) -> bool:
+    """Checks the condition of a rule against a (partially) decoded arg"""
+
     # Only Case conditional rule
     if rule.type != -1:
         return False
 
     # Case fully decoded arg -> validate
-    if not (args[rule.data.arg].decoded_mask ^ args[rule.data.arg].mask):
+    if not args[rule.data.arg].decoded_mask ^ args[rule.data.arg].mask:
 
         data = rule.eval_op(args[rule.data.arg].value)
         cond = rule.nbits.value
@@ -280,8 +265,8 @@ def confirm_cond(rule: RuleDef, args: list[DecodedArg]) -> bool:
     return False
 
 
-def decode_rules(state: DecodeState, rules: list[RuleDef]) -> bool:
-
+def decode_rules(state: DecodeState, rules: list[codecs.RuleDef]) -> bool:
+    """Decodes a list of rules"""
     for rule in rules:
         if not decode_rule(state, rule):
             return False
@@ -290,6 +275,7 @@ def decode_rules(state: DecodeState, rules: list[RuleDef]) -> bool:
 
 
 def decode_pattern(state: DecodeState) -> bool:
+    """Decodes all the rules in a patter and the number of repeats"""
 
     decode_repeat = False
     expected_repeat = 1
@@ -337,45 +323,21 @@ def decode_pattern(state: DecodeState) -> bool:
     return True
 
 
-def decode_protocol(
-    proto: ProtocolDef, signal: SignalData, tolerance: float = 0.25
-) -> list[DecodeMatch]:
-    """Checks a signal against a protocol and if it maches returns
-    the decoded arguments as list of matches, as potentially more than one timing preset could match.
-    If no match the list has zero elements
-    """
+def create_match(state: DecodeState) -> DecodeMatch:
+    """Factory function to create a DecodeMatch object from the current state"""
+    match = DecodeMatch()
+    match.protocol = state.protocol
+    match.args = []
+    match.missing_bits = []
+    match.tolerance = state.used_tolerance
 
-    decoded: list[DecodeMatch] = []
+    match.toggle_bit = state.args[0].value
+    for arg in state.args[1:]:
 
-    # See if we need to decode a preset, if so try every timing info
-    if proto.preset.has_arg():
-        for preset, timings in enumerate(proto.timings):
+        # if any arg is incompletely decoded the match is not unique
+        if arg.decoded_mask != arg.mask:
+            match.uniquematch = False
+        match.args.append(arg.value)
+        match.missing_bits.append(arg.decoded_mask ^ arg.mask)
 
-            state = DecodeState(proto, signal, tolerance, timings)
-            result = decode_pattern(state)
-            if result:
-                if state.args[proto.preset.arg].update(preset, None):
-                    decoded.append(DecodeMatch(state))
-
-    else:
-        state = DecodeState(proto, signal, tolerance, proto.timings[proto.preset.value])
-        result = decode_pattern(state)
-        if result:
-            decoded.append(DecodeMatch(state))
-
-    return decoded
-
-
-def decode(
-    signal: SignalData, registry: ProtocolRegistry, tolerance: float = 0.25
-) -> list[DecodeMatch]:
-
-    decoded: list[DecodeMatch] = []
-
-    for name in registry.list_protocols():
-
-        decoded += decode_protocol(
-            registry.get_protocol(name), signal, tolerance  # type:ignore
-        )
-
-    return decoded
+    return match

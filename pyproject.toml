@@ -17,11 +17,10 @@ max-statements=60
 max-returns=8
 max-branches=14
 disable = [
-  "missing-docstring",
+  "fixme",
   "too-few-public-methods",
   "too-many-instance-attributes",
   "wildcard-import",
-  "invalid-name",
   "too-many-arguments",
   "line-too-long",
   "protected-access",

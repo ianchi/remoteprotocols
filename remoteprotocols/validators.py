@@ -1,3 +1,5 @@
+"""General validator utilities"""
+
 import re
 from typing import Any, Callable, List, Union, cast
 
@@ -24,9 +26,9 @@ def remove_quotes(value: Any) -> Any:
         # remove quotes
         re_quote = re.compile(r"^\s*([\"\'])((?:(?!\1).|\\\1)*)(?<!\\)\1\s*$")
         # remove border quotes
-        m = re.search(re_quote, value)
-        if m:
-            value = m[2]
+        match = re.search(re_quote, value)
+        if match:
+            value = match[2]
     return value
 
 
@@ -94,6 +96,9 @@ def valid(value: Any) -> Any:
 
 
 def unique_field_value(field: str) -> Callable[[Any], Any]:
+    """Generates a validator to check that objects in a list have a unique value in the
+    provided field"""
+
     def validator(value: Any) -> Any:
         if not isinstance(value, list):
             raise vol.Invalid("Expected a list")
@@ -179,16 +184,16 @@ def binary_string(value: Any) -> str:
     return val
 
 
-def hex_string(value: Any) -> str:
-    """Validates that value is a valid hexadecimal digit"""
+def hex_string(value: Any) -> int:
+    """Validates that value is a valid hexadecimal digit and converts it to number"""
 
     val = coerce_string(value)
 
-    r = re.compile(r"^[0-9a-fA-F]+$")
-    if not re.match(r, val):
+    re_hex = re.compile(r"^[0-9a-fA-F]+$")
+    if not re_hex.match(val):
         raise vol.Invalid("String must be all hexadecimal digits")
 
-    return val
+    return int(val, 16)
 
 
 def quoted_split(text: str, delimiter: str) -> List[str]:
@@ -204,14 +209,14 @@ def quoted_split(text: str, delimiter: str) -> List[str]:
     )
 
     while len(text):
-        m = re.search(re_first, text)
+        match = re.search(re_first, text)
 
-        if not m:
+        if not match:
             break
-        text = text[m.end(0) + 1 :]
+        text = text[match.end(0) + 1 :]
 
         # remove spaces
-        arg = m[0].strip()
+        arg = match[0].strip()
 
         args.append(arg)
 

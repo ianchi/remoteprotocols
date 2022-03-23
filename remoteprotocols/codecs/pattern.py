@@ -1,15 +1,17 @@
+"""Functions for parsing patterns into RuleDef objects"""
 import re
 from typing import List, Tuple, Union
 
 import voluptuous as vol  # type: ignore
 
 import remoteprotocols.validators as val
-from remoteprotocols.protocol.definition import TOGGLE_ARG, RuleDef
+from remoteprotocols.codecs import TOGGLE_ARG, RuleDef
 
 # Functions for parsing a pattern
 
 
 def get_argn(name: str, args: list[str]) -> int:
+    """Returns the index number of a named argument"""
     argn = 0
     if name == TOGGLE_ARG:
         argn = 0
@@ -24,6 +26,7 @@ def get_argn(name: str, args: list[str]) -> int:
 
 
 def check_timings(value: str, timings: list[str]) -> None:
+    """Validate that a reference is a valid timming slot"""
     try:
         vol.In(timings)(value)
     except vol.Invalid:
@@ -55,64 +58,66 @@ def parse_rule(
     consumed: int = 0
 
     # 1) check if it is a named timing slot
-    m = re_timing.match(pattern)
-    if m:
-        check_timings(m[1], timings)
-        rule.type = timings.index(m[1]) + 1  # timing number
-        consumed = m.end()
+    match = re_timing.match(pattern)
+    if match:
+        check_timings(match[1], timings)
+        rule.type = timings.index(match[1]) + 1  # timing number
+        consumed = match.end()
     else:
         # check if it is a data block
-        m = re_data.match(pattern)
+        match = re_data.match(pattern)
 
-        if m:
+        if match:
             rule.type = 0  # data
-            rule.negate = m[1] == "~"
-            rule.data.arg = get_argn(m[2], args) if m[2] else 0
-            rule.data.value = val.integer(m[3]) if m[3] else 0
-            rule.operation = m[4][0] if m[4] else "0"
-            rule.op_arg = val.integer(m[5]) if m[5] else 0
-            rule.action = m[6][0] if m[6] else "0"
-            rule.nbits.arg = get_argn(m[7], args) if m[7] else 0
-            rule.nbits.value = val.integer(m[8]) if m[8] else 0
-            consumed = m.end()
+            rule.negate = match[1] == "~"
+            rule.data.arg = get_argn(match[2], args) if match[2] else 0
+            rule.data.value = val.integer(match[3]) if match[3] else 0
+            rule.operation = match[4][0] if match[4] else "0"
+            rule.op_arg = val.integer(match[5]) if match[5] else 0
+            rule.action = match[6][0] if match[6] else "0"
+            rule.nbits.arg = get_argn(match[7], args) if match[7] else 0
+            rule.nbits.value = val.integer(match[8]) if match[8] else 0
+            consumed = match.end()
 
         else:
-            m = re_condition.match(pattern)
-            if m:
+            match = re_condition.match(pattern)
+            if match:
                 rule.type = -1  # conditional
-                rule.negate = m[1] == "~"
-                rule.data.arg = get_argn(m[2], args) if m[2] else 0
-                rule.operation = m[3][0] if m[3] else "0"
-                rule.op_arg = val.integer(m[4]) if m[4] else 0
-                rule.action = m[5][0]
-                rule.nbits.value = val.integer(m[6]) if m[6] else 0
+                rule.negate = match[1] == "~"
+                rule.data.arg = get_argn(match[2], args) if match[2] else 0
+                rule.operation = match[3][0] if match[3] else "0"
+                rule.op_arg = val.integer(match[4]) if match[4] else 0
+                rule.action = match[5][0]
+                rule.nbits.value = val.integer(match[6]) if match[6] else 0
 
-                pattern, subexp = parse_subexp(pattern[m.end() :], timings, args)
+                pattern, subexp = parse_subexp(pattern[match.end() :], timings, args)
                 if not subexp:
                     raise vol.Invalid(f"Missing consequent in conditional: {pattern}")
                 rule.consequent = subexp
 
-                m = re_condition_alternate.match(pattern)
-                if m:
-                    pattern, subexp = parse_subexp(pattern[m.end() :], timings, args)
+                match = re_condition_alternate.match(pattern)
+                if match:
+                    pattern, subexp = parse_subexp(
+                        pattern[match.end() :], timings, args
+                    )
                     if not subexp:
                         raise vol.Invalid(
                             f"Missing alternate in conditional: {pattern}"
                         )
                     rule.alternate = subexp
 
-                m = re_condition_close.match(pattern)
-                if m:
-                    consumed = m.end()
+                match = re_condition_close.match(pattern)
+                if match:
+                    consumed = match.end()
 
             # consume empty string
             else:
-                m = re_empty.match(pattern)
-                if m:
-                    consumed = m.end()
-                    m = None
+                match = re_empty.match(pattern)
+                if match:
+                    consumed = match.end()
+                    match = None
 
-    if not m:
+    if not match:
         rule = None
 
     return (pattern[consumed:], rule)
