@@ -112,7 +112,7 @@ class ProtocolRegistry:
         tolerance: float = 0.20,
         protocols: Optional[list[str]] = None,
     ) -> list[DecodeMatch]:
-        """Decodes a signal and returns a list of all matching protcols and corresponding decoded arguments.
+        """Decodes a signal and returns a list of all matching protocols and corresponding decoded arguments.
         It decodes into all known protocols or a filtered subset
         """
 

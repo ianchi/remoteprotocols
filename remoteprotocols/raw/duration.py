@@ -13,6 +13,7 @@ class DurationFormat(ProtocolDef):
 
     name: str = "duration"
     desc: str = "Raw durations format"
+    type: str = "raw"
 
     args: list[ArgDef] = [
         ArgDef({"name": "durations", "desc": "List of durations (comma separated)"}),

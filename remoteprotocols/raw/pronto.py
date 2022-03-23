@@ -15,6 +15,7 @@ class ProntoFormat(ProtocolDef):
 
     name: str = "pronto"
     desc: str = "Pronto hex raw format"
+    type: str = "raw"
 
     args: list[ArgDef] = [
         ArgDef({"name": "data", "desc": "Data in hex codes space separated"}),

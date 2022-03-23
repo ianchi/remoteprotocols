@@ -69,7 +69,7 @@ PROTOCOL_DEF_SCHEMA = vol.All(
     {
         vol.Required("desc"): val.coerce_string,
         vol.Required("type"): vol.In(PROTO_TYPES),
-        vol.Optional("link"): [vol.Url],
+        vol.Optional("link"): [val.coerce_string],
         vol.Optional("note"): val.string_strict,
         vol.Required("pattern"): pattern_or_string,
         vol.Required("args"): vol.All(

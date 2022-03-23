@@ -17,6 +17,7 @@ class BroadlinkFormat(ProtocolDef):
 
     name: str = "broadlink"
     desc: str = "Broadlink base64 raw format"
+    type: str = "raw"
 
     args: list[ArgDef] = [
         ArgDef({"name": "b64", "desc": "Base 64 encoded data"}),

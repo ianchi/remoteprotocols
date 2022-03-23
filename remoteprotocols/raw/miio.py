@@ -25,6 +25,7 @@ class MiioFormat(ProtocolDef):
 
     name: str = "miio"
     desc: str = "Miio base64 raw format"
+    type: str = "raw"
 
     args: list[ArgDef] = [
         ArgDef({"name": "b64", "desc": "Base 64 encoded data"}),

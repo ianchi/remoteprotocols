@@ -8,6 +8,7 @@ import voluptuous as vol  # type: ignore
 
 from remoteprotocols import const
 from remoteprotocols.registry import ProtocolRegistry
+from remoteprotocols.validators import BITS_VALUES
 
 CMD_VALIDATE_PROTOCOL = "validate-protocol"
 CMD_VALIDATE_COMMAND = "validate-command"
@@ -79,6 +80,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "-v",
         "--verbose",
         help="Include detailed description of the protocol.",
+        action="store_true",
+    )
+    parser_config.add_argument(
+        "-m",
+        "--markdown",
+        help="Output in markdown format",
         action="store_true",
     )
     parser_config.add_argument(
@@ -185,30 +192,79 @@ def cmd_convert(
     return 0
 
 
-def cmd_list(verbose: bool, protocols: list[str]) -> int:
+def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int:
     """Runs the list command"""
 
     if len(protocols) == 0:
         protocols = REGISTRY.list_protocols()
 
+    if markdown:
+        if verbose:
+            print("## Protocols details\n")
+        else:
+            print("## List of supported protocols\n")
+            print("| Protocol | Signature | Type | Description |")
+            print("| --- | --- | --- | --- |")
     for name in protocols:
         proto = REGISTRY.get_protocol(name)
 
         if proto is None:
-            print(f"{name} Unknown protocol")
+            if markdown:
+                print(f"| {name} | | Unk | Unknown protocol |")
+            else:
+                print(f"{name} Unknown protocol")
             break
 
+        signature = proto.get_signature()
+        if markdown:
+            signature = signature.replace("<", "&lt;").replace(">", "&gt;")
+
         if verbose:
-            print(proto.name)
-            if hasattr(proto, "desc"):
+
+            if markdown:
+                print(f"\n### **{name}**")
                 print(proto.desc)
-            if hasattr(proto, "note"):
-                print(proto.note)
-            print(proto.get_signature())
-            print()
+                print(f"\n*Type:* {proto.type if hasattr(proto,'type') else '??'}")
+                print(f"\n*Signature:* {signature}")
+                print("\n*Arguments:*\n")
+                for arg in proto.args:
+                    print(f"- *{arg.name}*: {arg.desc}\n")
+                    if arg.default is not None:
+                        print(f"   optional. Default: {arg.default}\n")
+                    if hasattr(arg, "max"):
+                        max_str = str(arg.max)
+                        for key, val in BITS_VALUES.items():
+                            if arg.max == val:
+                                max_str = key
+                                break
+
+                        print(f"   range: {arg.min}-{max_str}\n")
+                    if hasattr(arg, "values") and arg.values:
+                        print(f"   values: {arg.values}\n")
+                if hasattr(proto, "note"):
+                    print(f"\n*Notes:* {proto.note}\n")
+
+                if hasattr(proto, "link") and proto.link:
+                    print("\n*Links:*")
+                    for link in proto.link:
+                        print(f"- [{link}]({link})")
+
+            else:
+                print(proto.name)
+                if hasattr(proto, "desc"):
+                    print(proto.desc)
+                if hasattr(proto, "note"):
+                    print(proto.note)
+                print(proto.get_signature())
+                print()
 
         else:
-            print(proto.get_signature())
+            if markdown:
+                print(
+                    f"| [{name}](#{name}) | {signature} | {proto.type if hasattr(proto,'type') else '??'} | {proto.desc} |"
+                )
+            else:
+                print(signature)
 
     return 0
 
@@ -238,7 +294,7 @@ def run(argv: list[str]) -> int:
         return cmd_convert(args.commands, args.verbose, args.tolerance, args.protocols)
 
     if args.command == CMD_LIST:
-        return cmd_list(args.verbose, args.protocols)
+        return cmd_list(args.verbose, args.protocols, args.markdown)
 
     return 0
 
