@@ -36,9 +36,7 @@ Broadlink base64 raw format
 *Signature:* broadlink:&lt;b64&gt;:&lt;frequency?=0&gt;
 
 *Arguments:*
-
 - *b64*: Base 64 encoded data
-
 - *frequency*: Frequency
 
    optional. Default: 0
@@ -52,13 +50,13 @@ Coolix 24-bit IR code
 *Signature:* coolix:&lt;data&gt;
 
 *Arguments:*
-
 - *data*: Code to send
 
    range: 0-24bits
 
+*Notes:*
 
-*Notes:* This protocol expects a minimum of 2 repeats
+This protocol expects a minimum of 2 repeats
 
 
 ### **dish**
@@ -69,11 +67,9 @@ Dish Network IR code
 *Signature:* dish:&lt;command&gt;:&lt;receiver?=1&gt;
 
 *Arguments:*
-
 - *command*: Command to send
 
    range: 0-63
-
 - *receiver*: Receiver ID to target
 
    optional. Default: 1
@@ -89,9 +85,7 @@ Raw durations format
 *Signature:* duration:&lt;durations&gt;:&lt;frequency?=0&gt;
 
 *Arguments:*
-
 - *durations*: List of durations (comma separated)
-
 - *frequency*: Frequency
 
    optional. Default: 0
@@ -105,18 +99,17 @@ JVC IR code
 *Signature:* jvc:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Address code to send
 
    range: 0-8bits
-
 - *command*: Command code to send
 
    range: 0-8bits
 
-
 *Links:*
+
 - [https://www.sbprojects.net/knowledge/ir/jvc.php](https://www.sbprojects.net/knowledge/ir/jvc.php)
+
 
 ### **lg**
 LG IR code
@@ -126,11 +119,9 @@ LG IR code
 *Signature:* lg:&lt;data&gt;:&lt;nbits?=28&gt;
 
 *Arguments:*
-
 - *data*: LG code to send
 
    range: 0-32bits
-
 - *nbits*: Number of bits to send (28 or 32)
 
    optional. Default: 28
@@ -148,7 +139,6 @@ Midea 48-bit IR code.
 *Signature:* midea:&lt;code&gt;
 
 *Arguments:*
-
 - *code*: 48-bit Midea code to send
 
    range: 0-48bits
@@ -162,9 +152,7 @@ Miio base64 raw format
 *Signature:* miio:&lt;b64&gt;:&lt;frequency?=38400&gt;
 
 *Arguments:*
-
 - *b64*: Base 64 encoded data
-
 - *frequency*: Frequency
 
    optional. Default: 38400
@@ -178,23 +166,23 @@ NEC IR code (8bit and extended 16bit address)
 *Signature:* nec:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Address to send
 
    range: 0-16bits
-
 - *command*: Command to send
 
    range: 0-8bits
 
+*Notes:*
 
-*Notes:* If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
+If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
 Command is always sent with inverted redundancy.
 
 
-
 *Links:*
+
 - [https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf](https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf)
+
 
 ### **nexa**
 Nexa RF code
@@ -204,23 +192,18 @@ Nexa RF code
 *Signature:* nexa:&lt;device&gt;:&lt;group&gt;:&lt;state&gt;:&lt;channel&gt;:&lt;level&gt;
 
 *Arguments:*
-
 - *device*: Nexa device code
 
    range: 0-32bits
-
 - *group*: Nexa group code
 
    range: 0-1
-
 - *state*: Nexa state code to send (0-OFF, 1-ON, 2-DIMMER LEVEL)
 
    range: 0-2
-
 - *channel*: Nexa channel code
 
    range: 0-15
-
 - *level*: Nexa level code
 
    range: 0-8bits
@@ -234,11 +217,9 @@ Panasonic IR code
 *Signature:* panasonic:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Address to send
 
    range: 0-16bits
-
 - *command*: NEC command to send
 
    range: 0-32bits
@@ -252,27 +233,27 @@ Pioneer IR code
 *Signature:* pioneer:&lt;rc_code_1&gt;:&lt;rc_code_2?=0&gt;
 
 *Arguments:*
-
 - *rc_code_1*: Remote control code
 
    range: 0-16bits
-
 - *rc_code_2*: Secondary remote control code. Some code are sent in two parts
 
    optional. Default: 0
 
    range: 0-16bits
 
+*Notes:*
 
-*Notes:* Pioneer devices may require that a given code is received multiple times before they will act on it.
+Pioneer devices may require that a given code is received multiple times before they will act on it.
 
 If unable to find your specific device in the documentation,
 find a device in the same class, as the codes are largely shared among devices within a given class.
 
 
-
 *Links:*
+
 - [https://www.pioneerelectronics.com/PUSA/Support/Home-Entertainment-Custom-Install/IR+Codes](https://www.pioneerelectronics.com/PUSA/Support/Home-Entertainment-Custom-Install/IR+Codes)
+
 
 ### **pronto**
 Pronto hex raw format
@@ -282,9 +263,7 @@ Pronto hex raw format
 *Signature:* pronto:&lt;data&gt;:&lt;frequency?=0&gt;
 
 *Arguments:*
-
 - *data*: Data in hex codes space separated
-
 - *frequency*: Frequency
 
    optional. Default: 0
@@ -298,11 +277,9 @@ RC5 IR code
 *Signature:* rc5:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Address to send
 
    range: 0-31
-
 - *command*: RC5 command to send
 
    range: 0-127
@@ -316,51 +293,42 @@ RC switch data with preset
 *Signature:* rc_switch:&lt;data&gt;:&lt;nbits&gt;:&lt;preset?=1&gt;:&lt;sync_high?=0&gt;:&lt;sync_low?=0&gt;:&lt;one_high?=0&gt;:&lt;one_low?=0&gt;:&lt;zero_high?=0&gt;:&lt;zero_low?=0&gt;
 
 *Arguments:*
-
 - *data*: Raw code to send
 
    range: 0-64bits
-
 - *nbits*: Number of bits of data to transmit
 
    range: 1-64
-
 - *preset*: Preset number 1-8 or 0 for custom durations
 
    optional. Default: 1
 
    range: 0-8
-
 - *sync_high*: Sync High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *sync_low*: Sync Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_high*: One High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_low*: One Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_high*: Zero High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_low*: Zero Low duration (for Preset 0)
 
    optional. Default: 0
@@ -376,55 +344,45 @@ RC Switch Type A (10 pole DIP switch)
 *Signature:* rc_switch_a:&lt;group&gt;:&lt;device&gt;:&lt;state&gt;:&lt;preset?=1&gt;:&lt;sync_high?=0&gt;:&lt;sync_low?=0&gt;:&lt;one_high?=0&gt;:&lt;one_low?=0&gt;:&lt;zero_high?=0&gt;:&lt;zero_low?=0&gt;
 
 *Arguments:*
-
 - *group*: Group
 
    range: 0-31
-
 - *device*: Device
 
    range: 0-31
-
 - *state*: State
 
    range: 0-1
-
 - *preset*: Preset number 1-8 or 0 for custom durations
 
    optional. Default: 1
 
    range: 0-8
-
 - *sync_high*: Sync High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *sync_low*: Sync Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_high*: One High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_low*: One Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_high*: Zero High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_low*: Zero Low duration (for Preset 0)
 
    optional. Default: 0
@@ -440,55 +398,45 @@ RC Switch Type B (two rotary/sliding switches with four setting)
 *Signature:* rc_switch_b:&lt;address&gt;:&lt;channel&gt;:&lt;state&gt;:&lt;preset?=1&gt;:&lt;sync_high?=0&gt;:&lt;sync_low?=0&gt;:&lt;one_high?=0&gt;:&lt;one_low?=0&gt;:&lt;zero_high?=0&gt;:&lt;zero_low?=0&gt;
 
 *Arguments:*
-
 - *address*: Address
 
    range: 1-4
-
 - *channel*: Channel
 
    range: 1-4
-
 - *state*: State
 
    range: 0-1
-
 - *preset*: Preset number 1-8 or 0 for custom durations
 
    optional. Default: 1
 
    range: 0-8
-
 - *sync_high*: Sync High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *sync_low*: Sync Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_high*: One High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_low*: One Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_high*: Zero High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_low*: Zero Low duration (for Preset 0)
 
    optional. Default: 0
@@ -504,59 +452,48 @@ RC Switch Type C (Intertechno)
 *Signature:* rc_switch_c:&lt;family&gt;:&lt;device&gt;:&lt;group&gt;:&lt;state&gt;:&lt;preset?=1&gt;:&lt;sync_high?=0&gt;:&lt;sync_low?=0&gt;:&lt;one_high?=0&gt;:&lt;one_low?=0&gt;:&lt;zero_high?=0&gt;:&lt;zero_low?=0&gt;
 
 *Arguments:*
-
 - *family*: Family A=0 to P=15
 
    range: 0-15
-
 - *device*: Device
 
    range: 1-4
-
 - *group*: Group
 
    range: 1-4
-
 - *state*: State
 
    range: 0-1
-
 - *preset*: Preset number 1-8 or 0 for custom durations
 
    optional. Default: 1
 
    range: 0-8
-
 - *sync_high*: Sync High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *sync_low*: Sync Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_high*: One High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_low*: One Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_high*: Zero High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_low*: Zero Low duration (for Preset 0)
 
    optional. Default: 0
@@ -572,53 +509,43 @@ RC Switch Type D (Status)
 *Signature:* rc_switch_d:&lt;group&gt;:&lt;device&gt;:&lt;state&gt;:&lt;preset&gt;:&lt;sync_high?=0&gt;:&lt;sync_low?=0&gt;:&lt;one_high?=0&gt;:&lt;one_low?=0&gt;:&lt;zero_high?=0&gt;:&lt;zero_low?=0&gt;
 
 *Arguments:*
-
 - *group*: Group
 
    range: 1-4
-
 - *device*: Device
 
    range: 1-3
-
 - *state*: State
 
    range: 0-1
-
 - *preset*: Preset number 1-8 or 0 for custom durations
 
    range: 0-8
-
 - *sync_high*: Sync High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *sync_low*: Sync Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_high*: One High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *one_low*: One Low duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_high*: Zero High duration (for Preset 0)
 
    optional. Default: 0
 
    range: -2147483648-32bits
-
 - *zero_low*: Zero Low duration (for Preset 0)
 
    optional. Default: 0
@@ -634,11 +561,9 @@ Samsung IR code. 32 bits
 *Signature:* samsung:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Customer code
 
    range: 0-8bits
-
 - *command*: Command code
 
    range: 0-8bits
@@ -652,11 +577,9 @@ Samsumg36 IR code.  It transmits the address and command in two packets separate
 *Signature:* samsung36:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
-
 - *address*: Address to send
 
    range: 0-16bits
-
 - *command*: Samsung36 command to send
 
    range: 0-1048575
@@ -670,11 +593,9 @@ Sony IR code
 *Signature:* sony:&lt;data&gt;:&lt;nbits?=12&gt;
 
 *Arguments:*
-
 - *data*: Code to send
 
    range: 0-32bits
-
 - *nbits*: Number of bits to send (12, 15 or 20)
 
    optional. Default: 12
@@ -692,11 +613,9 @@ Toshiba AC IR code
 *Signature:* toshiba_ac:&lt;rc_code_1&gt;:&lt;rc_code_2?=0&gt;
 
 *Arguments:*
-
 - *rc_code_1*: Remote control code
 
    range: 0-48bits
-
 - *rc_code_2*: Secondary remote control code. Some code are sent in two parts
 
    optional. Default: 0
