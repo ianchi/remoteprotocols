@@ -6,14 +6,15 @@ from typing import Any, Optional
 
 import voluptuous as vol  # type:ignore
 import yaml
-from remoteprotocols.raw.miio import MiioFormat
 
 import remoteprotocols.validators as val
-from remoteprotocols import const
 from remoteprotocols.protocol import DecodeMatch, ProtocolDef, RemoteCommand, SignalData
 from remoteprotocols.raw.broadlink import BroadlinkFormat
 from remoteprotocols.raw.duration import DurationFormat
+from remoteprotocols.raw.miio import MiioFormat
 from remoteprotocols.raw.pronto import ProntoFormat
+
+PROTOCOLS_YAML = "codecs/protocols.yaml"
 
 
 class ProtocolRegistry:
@@ -26,7 +27,7 @@ class ProtocolRegistry:
 
     def __init__(self, load_builtin: bool = True) -> None:
         if load_builtin:
-            path = pathlib.Path(__file__).parent / const.PROTOCOLS_YAML
+            path = pathlib.Path(__file__).parent / PROTOCOLS_YAML
             self.load(path.as_posix())
             self.add_protocol(ProntoFormat())
             self.add_protocol(DurationFormat())

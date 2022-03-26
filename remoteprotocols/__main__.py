@@ -6,7 +6,8 @@ import sys
 
 import voluptuous as vol  # type: ignore
 
-from remoteprotocols import const
+from remoteprotocols import __version__
+from remoteprotocols.protocol import ProtocolDef
 from remoteprotocols.registry import ProtocolRegistry
 from remoteprotocols.validators import BITS_VALUES
 
@@ -18,6 +19,8 @@ CMD_CONVERT = "convert"
 
 REGISTRY = ProtocolRegistry()
 
+PROGRAM_NAME = "remoteprotocols"
+
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     """Converts command line arguments in an object"""
@@ -27,8 +30,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "-v", "--version", help="Show version information.", action="store_true"
     )
     parser = argparse.ArgumentParser(
-        prog=const.PROGRAM_NAME,
-        description=f"{const.PROGRAM_NAME} v{const.PROGRAM_VERSION}",
+        prog=PROGRAM_NAME,
+        description=f"{PROGRAM_NAME} v{__version__}",
         parents=[options_parser],
     )
 
@@ -192,6 +195,7 @@ def cmd_convert(
     return 0
 
 
+# pylint: disable=too-many-branches
 def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int:
     """Runs the list command"""
 
@@ -205,6 +209,7 @@ def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int
             print("## List of supported protocols\n")
             print("| Protocol | Signature | Type | Description |")
             print("| --- | --- | --- | --- |")
+
     for name in protocols:
         proto = REGISTRY.get_protocol(name)
 
@@ -222,32 +227,7 @@ def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int
         if verbose:
 
             if markdown:
-                print(f"\n### **{name}**")
-                print(proto.desc)
-                print(f"\n*Type:* {proto.type if hasattr(proto,'type') else '??'}")
-                print(f"\n*Signature:* {signature}")
-                print("\n*Arguments:*\n")
-                for arg in proto.args:
-                    print(f"- *{arg.name}*: {arg.desc}\n")
-                    if arg.default is not None:
-                        print(f"   optional. Default: {arg.default}\n")
-                    if hasattr(arg, "max"):
-                        max_str = str(arg.max)
-                        for key, val in BITS_VALUES.items():
-                            if arg.max == val:
-                                max_str = key
-                                break
-
-                        print(f"   range: {arg.min}-{max_str}\n")
-                    if hasattr(arg, "values") and arg.values:
-                        print(f"   values: {arg.values}\n")
-                if hasattr(proto, "note"):
-                    print(f"\n*Notes:* {proto.note}\n")
-
-                if hasattr(proto, "link") and proto.link:
-                    print("\n*Links:*")
-                    for link in proto.link:
-                        print(f"- [{link}]({link})")
+                print(proto_help_md(proto))
 
             else:
                 print(proto.name)
@@ -269,17 +249,56 @@ def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int
     return 0
 
 
+def proto_help_md(proto: ProtocolDef) -> str:
+    """Generets help for protocol in Markdown format"""
+
+    signature = proto.get_signature()
+    signature = signature.replace("<", "&lt;").replace(">", "&gt;")
+    name = proto.name
+
+    output = ""
+
+    output += f"\n### **{name}**\n"
+    output += f"{proto.desc}\n"
+    output += f"\n*Type:* {proto.type if hasattr(proto,'type') else '??'}\n"
+    output += f"\n*Signature:* {signature}\n"
+    output += "\n*Arguments:*\n"
+    for arg in proto.args:
+        output += f"- *{arg.name}*: {arg.desc}\n"
+        if arg.default is not None:
+            output += f"\n   optional. Default: {arg.default}\n"
+        if hasattr(arg, "max"):
+            max_str = str(arg.max)
+            for key, val in BITS_VALUES.items():
+                if arg.max == val:
+                    max_str = key
+                    break
+
+            output += f"\n   range: {arg.min}-{max_str}\n"
+        if hasattr(arg, "values") and arg.values:
+            output += f"\n   values: {arg.values}\n"
+    if hasattr(proto, "note"):
+        output += f"\n*Notes:*\n\n{proto.note}\n"
+
+    if hasattr(proto, "link") and proto.link:
+        output += "\n*Links:*\n"
+        for link in proto.link:
+            output += f"\n- [{link}]({link})\n"
+
+    return output
+
+
 def run(argv: list[str]) -> int:
     """Runs the requested command"""
 
     if sys.version_info < (3, 8, 0):
-        log.error("You need Python 3.8+ to run %s", const.PROGRAM_NAME)
+        log.error("You need Python 3.8+ to run %s", PROGRAM_NAME)
         return 1
 
     args = parse_args(argv)
 
     if args.version:
-        print(f"Version: {const.PROGRAM_VERSION}")
+        print(f"Version: {__version__}")
 
     if args.command == CMD_VALIDATE_PROTOCOL:
         return cmd_validate_protocol(args.files)
