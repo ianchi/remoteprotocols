@@ -1,6 +1,6 @@
 # remoteprotocols
 
-`remoteprotocols` is a command line utility and a Python's library to convert between more than 20 encoded IR and 5 RF remote protocols (nec, jvc, RC switch, see [full protocol list](https://github.com/ianchi/remoteprotocols/PROTOCOLS.md)) and 4 raw formats (pronto, Broadlink, Xiaomi miio, raw durations) and between those. The goal is to be able to use any existing code listing with any transmitter, and to be able to decode raw signal received by any device into the proper encoded format.
+`remoteprotocols` is a command line utility and a Python's library to convert between more than 20 encoded IR and 5 RF remote protocols (nec, jvc, RC switch, see [full protocol list](https://github.com/ianchi/remoteprotocols/tree/master/PROTOCOLS.md)) and 4 raw formats (pronto, Broadlink, Xiaomi miio, raw durations) and between those. The goal is to be able to use any existing code listing with any transmitter, and to be able to decode raw signal received by any device into the proper encoded format.
 
 ## Remote command strings
 
@@ -17,7 +17,7 @@ toshiba_ac:<rc_code_1>:<rc_code_2?=0>
 nec16:0x7A:0x57
 ```
 
-You can get a list of all supported protocols and their command signatures [here](https://github.com/ianchi/remoteprotocols/PROTOCOLS.md), and from the command line.
+You can get a list of all supported protocols and their command signatures [here](https://github.com/ianchi/remoteprotocols/tree/master/PROTOCOLS.md), and from the command line.
 
 Optional arguments can be omitted, with empty `::` in the middle or completely omitting the colon at the end.
 
@@ -117,6 +117,8 @@ Thanks to all of the following sites and projects from where I obtained informat
 - [ESPHome](https://github.com/esphome/esphome/tree/2022.3.0/esphome/components/remote_base)
 - [IRremoteESP8266](https://crankyoldgit.github.io/IRremoteESP8266/)
 - [IRMP](https://github.com/ukw100/IRMP)
+- [MakeHex](https://github.com/probonopd/MakeHex)
+- [IrScrutinizer](https://github.com/bengtmartensson/IrScrutinizer)
 - [python-miio](https://github.com/rytilahti/python-miio/blob/master/miio/chuangmi_ir.py) for Xiaomi miio raw format
 - [python-broadlink](https://github.com/mjg59/python-broadlink/blob/master/protocol.md) for Broadlink raw format
 - [harctoolbox](http://www.harctoolbox.org/Glossary.html#ProntoSemantics) for Pronto
