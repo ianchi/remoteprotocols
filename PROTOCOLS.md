@@ -6,11 +6,11 @@
 | [coolix](#coolix) | coolix:&lt;data&gt; | IR | Coolix 24-bit IR code |
 | [dish](#dish) | dish:&lt;command&gt;:&lt;receiver?=1&gt; | IR | Dish Network IR code |
 | [duration](#duration) | duration:&lt;durations&gt;:&lt;frequency?=0&gt; | raw | Raw durations format |
-| [jvc](#jvc) | jvc:&lt;data&gt; | IR | JVC IR code |
+| [jvc](#jvc) | jvc:&lt;address&gt;:&lt;command&gt; | IR | JVC IR code |
 | [lg](#lg) | lg:&lt;data&gt;:&lt;nbits?=28&gt; | IR | LG IR code |
-| [midea](#midea) | midea:&lt;code&gt; | IR | Midea 48-bit IR code. 8-bit checksum added automatically |
+| [midea](#midea) | midea:&lt;code&gt; | IR | Midea 48-bit IR code. |
 | [miio](#miio) | miio:&lt;b64&gt;:&lt;frequency?=38400&gt; | raw | Miio base64 raw format |
-| [nec](#nec) | nec:&lt;address&gt;:&lt;command&gt; | IR | NEC IR code (in LSB form) |
+| [nec](#nec) | nec:&lt;address&gt;:&lt;command&gt; | IR | NEC IR code (8bit and extended 16bit address) |
 | [nexa](#nexa) | nexa:&lt;device&gt;:&lt;group&gt;:&lt;state&gt;:&lt;channel&gt;:&lt;level&gt; | RF | Nexa RF code |
 | [panasonic](#panasonic) | panasonic:&lt;address&gt;:&lt;command&gt; | IR | Panasonic IR code |
 | [pioneer](#pioneer) | pioneer:&lt;rc_code_1&gt;:&lt;rc_code_2?=0&gt; | IR | Pioneer IR code |
@@ -58,6 +58,9 @@ Coolix 24-bit IR code
    range: 0-24bits
 
 
+*Notes:* This protocol expects a minimum of 2 repeats
+
+
 ### **dish**
 Dish Network IR code
 
@@ -99,14 +102,21 @@ JVC IR code
 
 *Type:* IR
 
-*Signature:* jvc:&lt;data&gt;
+*Signature:* jvc:&lt;address&gt;:&lt;command&gt;
 
 *Arguments:*
 
-- *data*: JVC code to send
+- *address*: Address code to send
 
-   range: 0-16bits
+   range: 0-8bits
 
+- *command*: Command code to send
+
+   range: 0-8bits
+
+
+*Links:*
+- [https://www.sbprojects.net/knowledge/ir/jvc.php](https://www.sbprojects.net/knowledge/ir/jvc.php)
 
 ### **lg**
 LG IR code
@@ -131,7 +141,7 @@ LG IR code
 
 
 ### **midea**
-Midea 48-bit IR code. 8-bit checksum added automatically
+Midea 48-bit IR code.
 
 *Type:* IR
 
@@ -139,7 +149,7 @@ Midea 48-bit IR code. 8-bit checksum added automatically
 
 *Arguments:*
 
-- *code*: 48-bit Midea code to send as list of 5 hex/integers
+- *code*: 48-bit Midea code to send
 
    range: 0-48bits
 
@@ -161,7 +171,7 @@ Miio base64 raw format
 
 
 ### **nec**
-NEC IR code (in LSB form)
+NEC IR code (8bit and extended 16bit address)
 
 *Type:* IR
 
@@ -173,10 +183,18 @@ NEC IR code (in LSB form)
 
    range: 0-16bits
 
-- *command*: NEC command to send
+- *command*: Command to send
 
-   range: 0-16bits
+   range: 0-8bits
 
+
+*Notes:* If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
+Command is always sent with inverted redundancy.
+
+
+
+*Links:*
+- [https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf](https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf)
 
 ### **nexa**
 Nexa RF code

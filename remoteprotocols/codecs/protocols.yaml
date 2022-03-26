@@ -6,11 +6,12 @@
 coolix:
   desc: Coolix 24-bit IR code
   type: IR
+  note: This protocol expects a minimum of 2 repeats
   args:
     - name: data
-      print: 04X
+      print: 06X
       desc: Code to send
-      max: 0xFFFFFF
+      max: 24bits
   timings:
     unit: 560
     frequency: 38000
@@ -20,7 +21,11 @@ coolix:
     footer: [1, -10]
     mark: [1]
   pattern:
-    data: header {data>>16 MSB 8}{~data>>16 MSB 8}{data>>8 MSB 8}{~data>>8 MSB 8}{data MSB 8}{~data MSB 8}
+    data: |
+      header 
+      {data>>16 MSB 8}{~data>>16 MSB 8}
+      {data>>8 MSB 8}{~data>>8 MSB 8}
+      {data MSB 8}{~data MSB 8}
     mid: footer
     post: mark
     repeat: 2
@@ -41,9 +46,10 @@ dish:
       max: 16
   timings:
     frequency: 57600
-    header: [400, -6100]
-    one: [400, -1700]
-    zero: [400, -2800]
+    unit: 410
+    header: [1, -15]
+    one: [1, -4]
+    zero: [1, -7]
 
   pattern:
     data: header {command MSB 6}{receiver-1 LSB 4}{0 LSB 6}
@@ -53,20 +59,24 @@ dish:
 jvc:
   desc: JVC IR code
   type: IR
+  link:
+    - https://www.sbprojects.net/knowledge/ir/jvc.php
   args:
-    - name: data
-      desc: JVC code to send
-      max: 16bits
+    - name: address
+      desc: Address code to send
+      max: 8bits
+    - name: command
+      desc: Command code to send
+      max: 8bits
   timings:
     frequency: 38000
     header: [8400, -4200]
-    one: [525, -1725]
-    zero: [400, -525]
-    mark: [8400]
+    one: [526, -1574]
+    zero: [526, -526]
 
   pattern:
-    data: header {data MSB 16}
-    post: mark
+    pre: header
+    data: "{address LSB 8}{command LSB 8}"
 
 lg:
   desc: LG IR code
@@ -92,11 +102,11 @@ lg:
     post: mark
 
 midea:
-  desc: Midea 48-bit IR code. 8-bit checksum added automatically
+  desc: Midea 48-bit IR code.
   type: IR
   args:
     - name: code
-      desc: 48-bit Midea code to send as list of 5 hex/integers
+      desc: 48-bit Midea code to send
       max: 48bits
   timings:
     unit: 560
@@ -109,17 +119,21 @@ midea:
   pattern: header {code MSB 48} footer header {~code MSB 48} mark
 
 nec:
-  desc: NEC IR code (in LSB form)
+  desc: NEC IR code (8bit and extended 16bit address)
   type: IR
+  note: |
+    If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
+    Command is always sent with inverted redundancy.
+  link:
+    - https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf
   args:
     - name: address
       max: 16bits
       desc: Address to send
-      print: 04X
     - name: command
-      max: 16bits
-      desc: NEC command to send
-      print: 04X
+      max: 8bits
+      desc: Command to send
+      print: 02X
   timings:
     frequency: 38000
     unit: 1
@@ -128,7 +142,11 @@ nec:
     header: [9000, -4500]
     footer: [560]
 
-  pattern: header {address LSB 16} {command LSB 16} footer
+  pattern: |
+    header 
+    (address < 0x0100 ? {address LSB 8}{~address LSB 8} : {address LSB 16})
+    {command LSB 8}{~command LSB 8} 
+    footer
 
 nexa:
   desc: Nexa RF code
