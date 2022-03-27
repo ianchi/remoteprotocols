@@ -1,6 +1,8 @@
 """Module for managing encoded protocols.
 """
 
+from __future__ import annotations
+
 from typing import Any, Optional, Tuple
 
 import voluptuous as vol  # type: ignore

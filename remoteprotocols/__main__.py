@@ -1,5 +1,7 @@
 """Main program for command line utility"""
 
+from __future__ import annotations
+
 import argparse
 import logging as log
 import sys

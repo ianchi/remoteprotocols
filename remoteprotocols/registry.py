@@ -1,5 +1,7 @@
 """Module to handle registry of all protocols"""
 
+from __future__ import annotations
+
 import codecs
 import pathlib
 from typing import Any, Optional

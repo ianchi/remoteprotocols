@@ -1,4 +1,7 @@
 """Functions for parsing patterns into RuleDef objects"""
+
+from __future__ import annotations
+
 import re
 from typing import List, Tuple, Union
 

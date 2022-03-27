@@ -2,6 +2,9 @@
 Validates basic structure and performs first type conversion and feeds it into
 the second pass (at object level)
 """
+
+from __future__ import annotations
+
 from typing import Any
 
 import voluptuous as vol  # type: ignore
