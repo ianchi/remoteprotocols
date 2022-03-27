@@ -101,3 +101,6 @@ class RemoteCommand:
     args: list[int]
     command: str
     protocol: ProtocolDef
+
+    def __repr__(self) -> str:
+        return self.command
