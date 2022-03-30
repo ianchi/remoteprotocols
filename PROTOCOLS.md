@@ -10,7 +10,7 @@
 | [lg](#lg) | lg:&lt;data&gt;:&lt;nbits?=28&gt; | IR | LG IR code |
 | [midea](#midea) | midea:&lt;code&gt; | IR | Midea 48-bit IR code. |
 | [miio](#miio) | miio:&lt;b64&gt;:&lt;frequency?=38400&gt; | raw | Miio base64 raw format |
-| [nec](#nec) | nec:&lt;address&gt;:&lt;command&gt; | IR | NEC IR code (8bit and extended 16bit address) |
+| [nec](#nec) | nec:&lt;address&gt;:&lt;command&gt; | IR | NEC IR code (8bit and extended 16bit ) |
 | [nexa](#nexa) | nexa:&lt;device&gt;:&lt;group&gt;:&lt;state&gt;:&lt;channel&gt;:&lt;level&gt; | RF | Nexa RF code |
 | [panasonic](#panasonic) | panasonic:&lt;address&gt;:&lt;command&gt; | IR | Panasonic IR code |
 | [pioneer](#pioneer) | pioneer:&lt;rc_code_1&gt;:&lt;rc_code_2?=0&gt; | IR | Pioneer IR code |
@@ -159,7 +159,7 @@ Miio base64 raw format
 
 
 ### **nec**
-NEC IR code (8bit and extended 16bit address)
+NEC IR code (8bit and extended 16bit )
 
 *Type:* IR
 
@@ -171,12 +171,11 @@ NEC IR code (8bit and extended 16bit address)
    range: 0-16bits
 - *command*: Command to send
 
-   range: 0-8bits
+   range: 0-16bits
 
 *Notes:*
 
-If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
-Command is always sent with inverted redundancy.
+If address/command is 8bits, then basic NEC is assumed, added the inverted address/command redundancy.
 
 
 *Links:*

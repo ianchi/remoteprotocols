@@ -119,11 +119,10 @@ midea:
   pattern: header {code MSB 48} footer header {~code MSB 48} mark
 
 nec:
-  desc: NEC IR code (8bit and extended 16bit address)
+  desc: NEC IR code (8bit and extended 16bit )
   type: IR
   note: |
-    If address is 8bits, then basic NEC is assumed, added the inverted address redundancy.
-    Command is always sent with inverted redundancy.
+    If address/command is 8bits, then basic NEC is assumed, added the inverted address/command redundancy.
   link:
     - https://www.ad-notam.com/attachment/742/download/td_dfu_ir-protocol_v4-0_nec-format_20140618.pdf
   args:
@@ -131,7 +130,7 @@ nec:
       max: 16bits
       desc: Address to send
     - name: command
-      max: 8bits
+      max: 16bits
       desc: Command to send
       print: 02X
   timings:
@@ -145,7 +144,7 @@ nec:
   pattern: |
     header 
     (address < 0x0100 ? {address LSB 8}{~address LSB 8} : {address LSB 16})
-    {command LSB 8}{~command LSB 8} 
+    (command < 0x0100 ? {command LSB 8}{~command LSB 8} : {command LSB 16})
     footer
 
 nexa:
