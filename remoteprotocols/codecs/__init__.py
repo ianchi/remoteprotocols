@@ -246,19 +246,22 @@ class CodecDef(ProtocolDef):
 
         for idx, arg in enumerate(self.args):
 
-            validator = [val.integer, vol.Range(min=arg.min, max=arg.max)]
-            if arg.values:
-                validator.append(vol.In(arg.values))
+            try:
+                validator = [val.integer, vol.Range(min=arg.min, max=arg.max)]
+                if arg.values:
+                    validator.append(vol.In(arg.values))
 
-            if idx < args_len:
-                value = args[idx]
-            elif arg.default is not None:
-                value = arg.default
-            else:
-                vol.Invalid(f"Missing required argument <{arg.name}>")
+                if idx < args_len and args[idx] is not None:
+                    value = args[idx]
+                elif arg.default is not None:
+                    value = arg.default
+                else:
+                    vol.Invalid("Missing required argument")
 
-            value = vol.All(*validator)(value)
-            parsed.append(value)
+                value = vol.All(*validator)(value)
+                parsed.append(value)
+            except vol.Invalid as err:
+                raise vol.Invalid(f"Arg #{idx} <{arg.name}>: {err.msg}")
 
         return parsed
 

@@ -98,7 +98,7 @@ class ProtocolRegistry:
         proto = self.get_protocol(cmd.name)
 
         if proto is None:
-            raise Exception(f"Unknown Protocol '{cmd.name}'")
+            raise vol.Invalid(f"Unknown Protocol '{cmd.name}'")
         try:
             cmd.protocol = proto
             cmd.args = cmd.protocol.parse_args(args)
