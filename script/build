@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/.."
+set -euxo pipefail
+
+rm -rf dist **/*.egg-info
+python -m build
+./scritps/proto_md
