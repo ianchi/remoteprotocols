@@ -1,4 +1,4 @@
-"""Main program for command line utility"""
+"""Main program for command line utility."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ PROGRAM_NAME = "remoteprotocols"
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    """Converts command line arguments in an object"""
+    """Convert command line arguments in an object."""
 
     options_parser = argparse.ArgumentParser(add_help=False)
     options_parser.add_argument(
@@ -101,7 +101,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def cmd_validate_protocol(files: list[str]) -> int:
-    """Runs validate-protocol command"""
+    """Run validate-protocol command."""
 
     for file in files:
 
@@ -125,7 +125,7 @@ def cmd_validate_protocol(files: list[str]) -> int:
 
 
 def cmd_validate_command(commands: list[str]) -> int:
-    """Runs the validate command"""
+    """Run the validate command."""
 
     try:
         for cmd in commands:
@@ -138,7 +138,7 @@ def cmd_validate_command(commands: list[str]) -> int:
 
 
 def cmd_encode(commands: list[str]) -> int:
-    """Runs the encode command"""
+    """Run the encode command."""
 
     try:
         for command in commands:
@@ -165,7 +165,7 @@ def cmd_encode(commands: list[str]) -> int:
 def cmd_convert(
     commands: list[str], verbose: bool, tolerance: list[str], protocols: list[str]
 ) -> int:
-    """Runs the decode command"""
+    """Run the decode command."""
 
     if not tolerance:
         tol = 0.20
@@ -199,7 +199,7 @@ def cmd_convert(
 
 # pylint: disable=too-many-branches
 def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int:
-    """Runs the list command"""
+    """Run the list command."""
 
     if len(protocols) == 0:
         protocols = REGISTRY.list_protocols()
@@ -252,7 +252,7 @@ def cmd_list(verbose: bool, protocols: list[str], markdown: bool = False) -> int
 
 
 def proto_help_md(proto: ProtocolDef) -> str:
-    """Generets help for protocol in Markdown format"""
+    """Generets help for protocol in Markdown format."""
 
     signature = proto.get_signature()
     signature = signature.replace("<", "&lt;").replace(">", "&gt;")
@@ -291,7 +291,7 @@ def proto_help_md(proto: ProtocolDef) -> str:
 
 
 def run(argv: list[str]) -> int:
-    """Runs the requested command"""
+    """Run the requested command."""
 
     if sys.version_info < (3, 8, 0):
         log.error("You need Python 3.8+ to run %s", PROGRAM_NAME)
@@ -321,7 +321,7 @@ def run(argv: list[str]) -> int:
 
 
 def main() -> int:
-    """Main entry point for command line"""
+    """Run main entry point for command line."""
 
     log.basicConfig(format="%(levelname)s: %(message)s")
     try:

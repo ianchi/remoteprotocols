@@ -1,9 +1,8 @@
-"""Module for managing encoded protocols.
-"""
+"""Module for managing encoded protocols."""
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import voluptuous as vol  # type: ignore
 
@@ -16,8 +15,9 @@ TOGGLE_DEF = ArgDef({"min": 0, "max": 1, "name": TOGGLE_ARG})
 
 
 class ValueOrArg:
-    """Represents data in a rule, that can be either a constant value
-    or a reference to an argument.
+    """Represents data in a rule.
+
+    It can be either a constant value or a reference to an argument.
     """
 
     value: int = 0
@@ -26,17 +26,17 @@ class ValueOrArg:
     def __repr__(self) -> str:
         return self.__dict__.__str__()
 
-    def __init__(self, value: Optional[int] = None) -> None:
+    def __init__(self, value: int | None = None) -> None:
         if value:
             self.value = value
 
     def set_arg(self, arg: int) -> None:
-        """Sets the arg number to point to"""
+        """Set the arg number to point to."""
 
         self.arg = arg
 
-    def get(self, args: Optional[list[int]]) -> int:
-        """Returns the current value (own or referenced arg)"""
+    def get(self, args: list[int] | None) -> int:
+        """Return the current value (own or referenced arg)."""
 
         if self.arg <= 0:
             return self.value
@@ -45,12 +45,12 @@ class ValueOrArg:
         return 0
 
     def has_arg(self) -> bool:
-        """Whether it is pointing to an argument or a constant value"""
+        """Check whether it is pointing to an argument or a constant value."""
         return self.arg != 0
 
 
 class RuleDef:
-    """Definition of a single rule whithing a codec pattern"""
+    """Definition of a single rule whithing a codec pattern."""
 
     type: int = 0  # -1 conditional | 0 data | >0 timings
     negate: bool = False
@@ -59,8 +59,8 @@ class RuleDef:
     operation: str = ""  # >: >> | <: << | + | - | * | / | & | '|'
     op_arg: int = 0
     nbits: ValueOrArg
-    consequent: Optional[list[Any]] = None
-    alternate: Optional[list[Any]] = None
+    consequent: list[Any] | None = None
+    alternate: list[Any] | None = None
 
     def __init__(self) -> None:
         self.data = ValueOrArg()
@@ -70,7 +70,7 @@ class RuleDef:
         return self.__dict__.__str__()
 
     def eval_op(self, data: int) -> int:
-        """Evaluates the operation of the rule using 'data' as left argument of operator"""
+        """Evaluate the operation of the rule using 'data' as left argument of operator."""
 
         if self.negate:
             data = ~data  # pylint: disable=invalid-unary-operand-type
@@ -97,8 +97,8 @@ class RuleDef:
 
         return data
 
-    def invert_op(self, data: int, nbits: int) -> Tuple[int, int]:
-        """Inverts the operation of the rule"""
+    def invert_op(self, data: int, nbits: int) -> tuple[int, int]:
+        """Invert the operation of the rule."""
         mask = (1 << nbits) - 1
 
         if self.negate:
@@ -132,8 +132,8 @@ class RuleDef:
 
         return (data, mask)
 
-    def eval_cond(self, args: Optional[list[int]]) -> bool:
-        """Evaluates if the condition of the rule is true"""
+    def eval_cond(self, args: list[int] | None) -> bool:
+        """Evaluate if the condition of the rule is true."""
 
         # Case conditional rule
         if self.type != -1:
@@ -155,7 +155,8 @@ class RuleDef:
 
 class PatternDef:
     """Pattern definition for transformation.
-    Including rules and repeat information
+
+    Including rules and repeat information.
     """
 
     pre: list[RuleDef]
@@ -175,7 +176,7 @@ class PatternDef:
 
 
 class TimingsDef:
-    """Definition of a preset of signal's timings"""
+    """Definition of a preset of signal's timings."""
 
     frequency: ValueOrArg
 
@@ -201,27 +202,27 @@ class TimingsDef:
     def __repr__(self) -> str:
         return self.__dict__.__str__()
 
-    def get_slot(self, index: int, args: Optional[list[int]]) -> list[int]:
-        """Return timing pulses for a named slot"""
+    def get_slot(self, index: int, args: list[int] | None) -> list[int]:
+        """Get timing pulses for a named slot."""
 
         if index >= len(self.slots):
             return []
 
         return [d.get(args) * self.unit.get(args) for d in self.slots[index]]
 
-    def get_bit(self, value: int, args: Optional[list[int]]) -> list[int]:
-        """Return timing pulse information for the one/zero data bit"""
+    def get_bit(self, value: int, args: list[int] | None) -> list[int]:
+        """Get timing pulse information for the one/zero data bit."""
 
         signal = self.one if value else self.zero
         return [d.get(args) * self.unit.get(args) for d in signal]
 
     def get_frequency(self, args: list[int]) -> int:
-        """Returns frequency of the protocol"""
+        """Get frequency of the protocol."""
         return self.frequency.get(args)
 
 
 class CodecDef(ProtocolDef):
-    """Encoded protocol definition"""
+    """Encoded protocol definition."""
 
     timings: list[TimingsDef]
     preset: ValueOrArg
@@ -236,7 +237,7 @@ class CodecDef(ProtocolDef):
         self.name = name
 
     def parse_args(self, args: list[Any]) -> list[int]:
-        """Validates argument list and fills missing args with default values"""
+        """Validate argument list and fills missing args with default values."""
         parsed: list[int] = []
         args_len = len(args)
         if args_len > len(self.args):
@@ -266,6 +267,7 @@ class CodecDef(ProtocolDef):
         return parsed
 
     def to_command(self, args: list[int]) -> str:
+        """Convert argument list to command string."""
 
         command = self.name
         args_len = len(args)
@@ -286,6 +288,7 @@ class CodecDef(ProtocolDef):
         return command
 
     def encode(self, args: list[int]) -> SignalData:
+        """Encode protocol arguments into signal duration data."""
         self._toggle ^= 1
         args = [self._toggle] + args
 
@@ -302,9 +305,10 @@ class CodecDef(ProtocolDef):
         return signal
 
     def decode(self, signal: SignalData, tolerance: float = 0.25) -> list[DecodeMatch]:
-        """Checks a signal against the protocol and if it maches returns
-        the decoded arguments as list of matches, as potentially more than one timing preset could match.
-        If no match the list has zero elements
+        """Check a signal against the protocol and if it maches return decoded arguments.
+
+        Return a list of matches, as potentially more than one timing preset could match.
+        If no match the list has zero elements.
         """
 
         decoded: list[DecodeMatch] = []

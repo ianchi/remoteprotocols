@@ -1,22 +1,22 @@
-""" Base Protocol Definition Classes, shared between encoded protocols and raw formats"""
+"""Base Protocol Definition Classes, shared between encoded protocols and raw formats."""
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 
 class ArgDef:
-    """Definition of a single argument"""
+    """Definition of a single argument."""
 
     name: str
-    desc: Optional[str] = None
-    default: Optional[int] = None
-    example: Optional[int] = None
+    desc: str | None = None
+    default: int | None = None
+    example: int | None = None
     print: str
 
     min: int = 0
     max: int
-    values: Optional[list[int]] = None
+    values: list[int] | None = None
 
     def __init__(self, value: dict[(str, Any)]) -> None:
         self.values = []
@@ -28,7 +28,7 @@ class ArgDef:
 
 
 class SignalData:
-    """Raw burst information as durations"""
+    """Raw burst information as durations."""
 
     frequency: int = 0
     bursts: list[int]
@@ -38,7 +38,7 @@ class SignalData:
 
 
 class DecodeMatch:
-    """Single decoding match, with args and un-decoded masks"""
+    """Single decoding match, with args and un-decoded masks."""
 
     protocol: ProtocolDef
     args: list[int]
@@ -52,9 +52,7 @@ class DecodeMatch:
 
 
 class ProtocolDef:
-    """Base class for all protocols.
-    Both encoded and raw formats.
-    """
+    """Base class for all protocols. Both encoded and raw formats."""
 
     name: str
     type: str
@@ -68,7 +66,7 @@ class ProtocolDef:
         return self.__dict__.__str__()
 
     def get_signature(self) -> str:
-        """Returns help string with the signature to use to send a command"""
+        """Get help string with the signature to use to send a command."""
 
         signature = [self.name]
 
@@ -81,21 +79,20 @@ class ProtocolDef:
         return ":".join(signature)
 
     def parse_args(self, args: list[str]) -> list[int]:
-        """Validates arg list as strings, and converts it to final list of numbers
-        to use in protocol"""
+        """Validate arg list as strings, and converts it to final list of numbers to use in protocol."""
 
     def to_command(self, args: list[int]) -> str:
-        """Converts list of arguments as a command string"""
+        """Convert list of arguments as a command string."""
 
     def encode(self, args: list[int]) -> SignalData:
-        """Encodes arguments into a raw signal"""
+        """Encode arguments into a raw signal."""
 
     def decode(self, signal: SignalData, tolerance: float = 0.25) -> list[DecodeMatch]:
-        """Decodes signal into protocol arguments. Empty list if no match"""
+        """Decode signal into protocol arguments. Empty list if no match."""
 
 
 class RemoteCommand:
-    """Class to hold a parsed command"""
+    """Class to hold a parsed command."""
 
     name: str
     args: list[int]

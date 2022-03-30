@@ -1,9 +1,9 @@
-"""Xiaomi Miio raw format module"""
+"""Xiaomi Miio raw format module."""
 
 from __future__ import annotations
 
 import base64
-from typing import Any, Set
+from typing import Any
 
 import voluptuous as vol  # type: ignore
 
@@ -23,7 +23,7 @@ HEADER2 = 0x67
 
 
 class MiioFormat(ProtocolDef):
-    """Miio b64 raw format implementation"""
+    """Miio b64 raw format implementation."""
 
     name: str = "miio"
     desc: str = "Miio base64 raw format"
@@ -35,6 +35,7 @@ class MiioFormat(ProtocolDef):
     ]
 
     def parse_args(self, args: list[Any]) -> list[int]:
+        """Validate arg list as strings, and converts it to final list of numbers to use in protocol."""
 
         vol.Length(min=1, max=2)(args)
 
@@ -67,13 +68,14 @@ class MiioFormat(ProtocolDef):
         return result
 
     def to_command(self, args: list[int]) -> str:
+        """Convert list of arguments as a command string."""
 
         command = "miio:"
 
         edges = len(args[:-1]) - 1
         data: bytearray = bytearray([HEADER1, HEADER2, edges >> 8, edges & 0xFF])
 
-        times: Set[int] = set()
+        times: set[int] = set()
         for burst in args[:-1]:
             times.add(burst)
         times_sorted = sorted(times)
@@ -96,6 +98,7 @@ class MiioFormat(ProtocolDef):
         return command
 
     def encode(self, args: list[int]) -> SignalData:
+        """Encode arguments into a raw signal."""
 
         result = SignalData()
 
@@ -110,6 +113,7 @@ class MiioFormat(ProtocolDef):
         return result
 
     def decode(self, signal: SignalData, _tolerance: float = 0.25) -> list[DecodeMatch]:
+        """Decode signal into protocol arguments. Empty list if no match."""
 
         match = DecodeMatch()
         match.protocol = self

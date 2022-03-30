@@ -14,7 +14,7 @@ sony:<data>:<nbits?=12>
 toshiba_ac:<rc_code_1>:<rc_code_2?=0>
 
 # Example usage
-nec16:0x7A:0x57
+nec:0x7A:0x57
 ```
 
 You can get a list of all supported protocols and their command signatures [here](https://github.com/ianchi/remoteprotocols/tree/master/PROTOCOLS.md), and from the command line.

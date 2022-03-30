@@ -1,9 +1,9 @@
-"""Classes and functions to perform decoding"""
+"""Classes and functions to perform decoding."""
 
 from __future__ import annotations
 
 import copy
-from typing import Any, Optional, Tuple
+from typing import Any
 
 # pylint: disable=cyclic-import
 from remoteprotocols import codecs
@@ -11,7 +11,7 @@ from remoteprotocols.protocol import ArgDef, DecodeMatch, SignalData
 
 
 class DecodedArg:
-    """Auxiliary class to carry the partial/full decode status of an argument"""
+    """Auxiliary class to carry the partial/full decode status of an argument."""
 
     value: int = 0
     mask: int = 0
@@ -27,9 +27,10 @@ class DecodedArg:
         if arg.values:
             self.values = arg.values
 
-    def update(self, value: int, mask: Optional[int]) -> bool:
-        """Checks consistency of the new value against the already decoded part.
-        If valid, updates the known status
+    def update(self, value: int, mask: int | None) -> bool:
+        """Check consistency of the new value against the already decoded part.
+
+        If valid, updates the known status.
         """
         if mask is None:
             mask = self.mask
@@ -52,7 +53,7 @@ class DecodedArg:
 
 
 class DecodeState:
-    """Maintains intermediate decoding state"""
+    """Maintain intermediate decoding state."""
 
     protocol: codecs.CodecDef
     signal: SignalData
@@ -87,13 +88,13 @@ class DecodeState:
         return dst
 
     def update(self, src: Any) -> None:
-        """Updates the current state with decoded information from a branching state,
-        copying the relevant attributes"""
+        """Update the current state with decoded information from a branching state copying the relevant attributes."""
         self.decoded = src.decoded
         self.args = src.args
 
     def expect_burst(self, bursts: list[int]) -> bool:
         """Check if the following burst of data coincide with the expected.
+
         If true advances the decoded reference.
         """
 
@@ -122,9 +123,10 @@ class DecodeState:
 
     def read_data(
         self, expected_bits: codecs.ValueOrArg, lsb: bool
-    ) -> Tuple[bool, int, int]:
-        """Tries to read data bits (zero/one) from the signal data.
-        Returns (valid, data, number of bits).
+    ) -> tuple[bool, int, int]:
+        """Try to read data bits (zero/one) from the signal data.
+
+        Return (valid, data, number of bits).
         """
         data = 0
         bit = 0
@@ -157,7 +159,7 @@ class DecodeState:
 
 
 def decode_rule(self: DecodeState, rule: codecs.RuleDef) -> bool:
-    """Tries to decode a specific rule in the current signal position"""
+    """Try to decode a specific rule in the current signal position."""
 
     decoded = self.decoded
 
@@ -231,7 +233,7 @@ def decode_rule(self: DecodeState, rule: codecs.RuleDef) -> bool:
 
 
 def confirm_cond(rule: codecs.RuleDef, args: list[DecodedArg]) -> bool:
-    """Checks the condition of a rule against a (partially) decoded arg"""
+    """Check the condition of a rule against a (partially) decoded arg."""
 
     # Only Case conditional rule
     if rule.type != -1:
@@ -266,7 +268,7 @@ def confirm_cond(rule: codecs.RuleDef, args: list[DecodedArg]) -> bool:
 
 
 def decode_rules(state: DecodeState, rules: list[codecs.RuleDef]) -> bool:
-    """Decodes a list of rules"""
+    """Decode a list of rules."""
     for rule in rules:
         if not decode_rule(state, rule):
             return False
@@ -275,7 +277,7 @@ def decode_rules(state: DecodeState, rules: list[codecs.RuleDef]) -> bool:
 
 
 def decode_pattern(state: DecodeState) -> bool:
-    """Decodes all the rules in a patter and the number of repeats"""
+    """Decode all the rules in a patter and the number of repeats."""
 
     decode_repeat = False
     expected_repeat = 1
@@ -324,7 +326,7 @@ def decode_pattern(state: DecodeState) -> bool:
 
 
 def create_match(state: DecodeState) -> DecodeMatch:
-    """Factory function to create a DecodeMatch object from the current state"""
+    """Create a DecodeMatch object from the current state."""
     match = DecodeMatch()
     match.protocol = state.protocol
     match.args = []

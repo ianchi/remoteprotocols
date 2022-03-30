@@ -1,4 +1,4 @@
-"""Classes and functions to perform encoding"""
+"""Classes and functions to perform encoding."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from remoteprotocols import codecs
 def encode_rule(
     rule: codecs.RuleDef, args: list[int], timings: codecs.TimingsDef
 ) -> list[int]:
-    """Converts a single rule into signal pulses"""
+    """Convert a single rule into signal pulses."""
 
     # Case named timings rule:
     if rule.type > 0:
@@ -44,7 +44,7 @@ def encode_rule(
 def encode_rules(
     rules: list[codecs.RuleDef], args: list[int], timings: codecs.TimingsDef
 ) -> list[int]:
-    """Converts a list of rules into signal pulses"""
+    """Convert a list of rules into signal pulses."""
     signal = []
 
     for rule in rules:
@@ -56,7 +56,7 @@ def encode_rules(
 def encode_pattern(
     pattern: codecs.PatternDef, args: list[int], timings: codecs.TimingsDef
 ) -> list[int]:
-    """Converts a pattern into the corresponding signal"""
+    """Convert. a pattern into the corresponding signal."""
 
     result = []
 

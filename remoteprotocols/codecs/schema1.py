@@ -1,6 +1,7 @@
-"""First pass of protocol schema validation, at element level
+"""First pass of protocol schema validation, at element level.
+
 Validates basic structure and performs first type conversion and feeds it into
-the second pass (at object level)
+the second pass (at object level).
 """
 
 from __future__ import annotations
@@ -56,7 +57,7 @@ PATTERN_SCHEMA = vol.Schema(
 
 
 def pattern_or_string(value: Any) -> dict[(str, Any)]:
-    """Converts direct string definition of pattern into an object"""
+    """Convert direct string definition of pattern into an object."""
     if isinstance(value, str):
         value = {"data": value}
     elif not isinstance(value, dict):

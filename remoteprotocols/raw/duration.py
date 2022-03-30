@@ -1,4 +1,4 @@
-"""Duration raw format module"""
+"""Duration raw format module."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from remoteprotocols.protocol import ArgDef, DecodeMatch, ProtocolDef, SignalDat
 
 
 class DurationFormat(ProtocolDef):
-    """Raw durations format implementation"""
+    """Raw durations format implementation."""
 
     name: str = "duration"
     desc: str = "Raw durations format"
@@ -23,6 +23,7 @@ class DurationFormat(ProtocolDef):
     ]
 
     def parse_args(self, args: list[Any]) -> list[int]:
+        """Validate arg list as strings, and converts it to final list of numbers to use in protocol."""
 
         vol.Length(min=1, max=2)(args)
 
@@ -35,6 +36,7 @@ class DurationFormat(ProtocolDef):
         return data  # type: ignore
 
     def to_command(self, args: list[int]) -> str:
+        """Convert list of arguments as a command string."""
 
         command = "duration:"
 
@@ -48,6 +50,7 @@ class DurationFormat(ProtocolDef):
         return command
 
     def encode(self, args: list[int]) -> SignalData:
+        """Encode arguments into a raw signal."""
 
         result = SignalData()
 
@@ -57,6 +60,7 @@ class DurationFormat(ProtocolDef):
         return result
 
     def decode(self, signal: SignalData, _tolerance: float = 0.25) -> list[DecodeMatch]:
+        """Decode signal into protocol arguments. Empty list if no match."""
 
         match = DecodeMatch()
         match.protocol = self

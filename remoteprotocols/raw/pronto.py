@@ -1,4 +1,4 @@
-"""Pronto raw format module"""
+"""Pronto raw format module."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ REFERENCE_FREQUENCY = 4145146
 
 
 class ProntoFormat(ProtocolDef):
-    """Pronto raw format implementation"""
+    """Pronto raw format implementation."""
 
     name: str = "pronto"
     desc: str = "Pronto hex raw format"
@@ -25,6 +25,7 @@ class ProntoFormat(ProtocolDef):
     ]
 
     def parse_args(self, args: list[Any]) -> list[int]:
+        """Validate arg list as strings, and converts it to final list of numbers to use in protocol."""
 
         if len(args) != 1:
             vol.Invalid(f"Expected one argument, got {len(args)}")
@@ -35,6 +36,7 @@ class ProntoFormat(ProtocolDef):
         return data  # type: ignore
 
     def to_command(self, args: list[int]) -> str:
+        """Convert list of arguments as a command string."""
 
         command = "pronto:"
 
@@ -44,6 +46,7 @@ class ProntoFormat(ProtocolDef):
         return command.strip()
 
     def encode(self, args: list[int]) -> SignalData:
+        """Encode arguments into a raw signal."""
 
         result = SignalData()
 
@@ -76,6 +79,7 @@ class ProntoFormat(ProtocolDef):
         return result
 
     def decode(self, signal: SignalData, _tolerance: float = 0.25) -> list[DecodeMatch]:
+        """Decode signal into protocol arguments. Empty list if no match."""
 
         match = DecodeMatch()
         match.protocol = self

@@ -1,9 +1,8 @@
-"""Functions for parsing patterns into RuleDef objects"""
+"""Functions for parsing patterns into RuleDef objects."""
 
 from __future__ import annotations
 
 import re
-from typing import List, Tuple, Union
 
 import voluptuous as vol  # type: ignore
 
@@ -14,7 +13,7 @@ from remoteprotocols.codecs import TOGGLE_ARG, RuleDef
 
 
 def get_argn(name: str, args: list[str]) -> int:
-    """Returns the index number of a named argument"""
+    """Get the index number of a named argument."""
     argn = 0
     if name == TOGGLE_ARG:
         argn = 0
@@ -29,7 +28,7 @@ def get_argn(name: str, args: list[str]) -> int:
 
 
 def check_timings(value: str, timings: list[str]) -> None:
-    """Validate that a reference is a valid timming slot"""
+    """Validate that a reference is a valid timming slot."""
     try:
         vol.In(timings)(value)
     except vol.Invalid:
@@ -37,9 +36,10 @@ def check_timings(value: str, timings: list[str]) -> None:
 
 
 def parse_rule(
-    pattern: str, timings: List[str], args: List[str]
-) -> Tuple[str, Union[RuleDef, None]]:
+    pattern: str, timings: list[str], args: list[str]
+) -> tuple[str, RuleDef | None]:
     """Parse the first rule of the pattern, and returns the rest of the string.
+
     It errors if there is no valid pattern.
     """
     re_timing = re.compile(r"^\s*([a-z_][a-z0-9_]*)")
@@ -56,7 +56,7 @@ def parse_rule(
     re_condition_close = re.compile(r"^\s*\)")
     re_empty = re.compile(r"^\s*")
 
-    rule: Union[RuleDef, None]
+    rule: RuleDef | None
     rule = RuleDef()
     consumed: int = 0
 
@@ -127,9 +127,9 @@ def parse_rule(
 
 
 def parse_subexp(
-    pattern: str, timings: List[str], args: List[str]
-) -> Tuple[str, list[RuleDef]]:
-    """Parse a susecion of o or more consecutive rules"""
+    pattern: str, timings: list[str], args: list[str]
+) -> tuple[str, list[RuleDef]]:
+    """Parse a susecion of o or more consecutive rules."""
     subexp: list[RuleDef] = []
 
     while pattern:
@@ -144,9 +144,10 @@ def parse_subexp(
     return (pattern, subexp)
 
 
-def parse_pattern(pattern: str, timings: List[str], args: List[str]) -> list[RuleDef]:
+def parse_pattern(pattern: str, timings: list[str], args: list[str]) -> list[RuleDef]:
     """Parse a pattern string and returns a list of rules.
-    It must have at least one valid rule and consume the whole pattern
+
+    It must have at least one valid rule and consume the whole pattern.
     """
 
     pattern, rules = parse_subexp(pattern, timings, args)

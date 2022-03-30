@@ -1,10 +1,10 @@
-"""Module to handle registry of all protocols"""
+"""Module to handle registry of all protocols."""
 
 from __future__ import annotations
 
 import codecs
 import pathlib
-from typing import Any, Optional
+from typing import Any
 
 import voluptuous as vol  # type:ignore
 import yaml
@@ -21,6 +21,7 @@ PROTOCOLS_YAML = "codecs/protocols.yaml"
 
 class ProtocolRegistry:
     """Registry to store all available protocols.
+
     Dispatches calls to respective protocol.
     """
 
@@ -37,8 +38,10 @@ class ProtocolRegistry:
             self.add_protocol(MiioFormat())
 
     def add_protocols_def(self, definition: dict[(str, Any)]) -> None:
-        """Validates a dict of encoded protocols definitions and converts them into CodecDef objects
-        and updates the registry"""
+        """Validate and add a dict of encoded protocols definitions.
+
+        Convert them into CodecDef objects and update the registry.
+        """
 
         from remoteprotocols.codecs import schema1
 
@@ -47,11 +50,11 @@ class ProtocolRegistry:
         self.protocols.update(protocols)
 
     def add_protocol(self, protocol: ProtocolDef) -> None:
-        """Adds a single protocol to the registry"""
+        """Add a single protocol to the registry."""
         self.protocols[protocol.name] = protocol
 
     def load(self, file: str) -> None:
-        """Reads a yaml file and adds it to the registry"""
+        """Read a yaml file and adds it to the registry."""
 
         path = pathlib.Path(file).resolve()
 
@@ -68,19 +71,19 @@ class ProtocolRegistry:
 
         self.add_protocols_def(data)
 
-    def get_protocol(self, name: str) -> Optional[ProtocolDef]:
-        """Returns a protocol by name"""
+    def get_protocol(self, name: str) -> ProtocolDef | None:
+        """Return a protocol by name."""
         return self.protocols[name] if name in self.protocols else None
 
     def list_protocols(self) -> list[str]:
-        """List all supported protocols in alphabetical order"""
+        """List all supported protocols in alphabetical order."""
 
         protocols = list(self.protocols)
         protocols.sort()
         return protocols
 
     def parse_command(self, command: str) -> RemoteCommand:
-        """Parses and validates a command string into a RemoteCommand object"""
+        """Parse and validates a command string into a RemoteCommand object."""
         cmd = RemoteCommand()
 
         if not isinstance(command, str):
@@ -113,10 +116,11 @@ class ProtocolRegistry:
         self,
         signal: SignalData,
         tolerance: float = 0.20,
-        protocols: Optional[list[str]] = None,
+        protocols: list[str] | None = None,
     ) -> list[DecodeMatch]:
-        """Decodes a signal and returns a list of all matching protocols and corresponding decoded arguments.
-        It decodes into all known protocols or a filtered subset
+        """Decode a signal and return a list of all matching protocols and corresponding decoded arguments.
+
+        It decodes into all known protocols or a filtered subset.
         """
 
         decoded: list[DecodeMatch] = []
@@ -131,9 +135,9 @@ class ProtocolRegistry:
         self,
         command: str,
         tolerance: float = 0.20,
-        protocols: Optional[list[str]] = None,
+        protocols: list[str] | None = None,
     ) -> list[DecodeMatch]:
-        """Converts a given command into other protocols (all or filtered)"""
+        """Convert a given command into other protocols (all or filtered)."""
 
         cmd = self.parse_command(command)
         signal = cmd.protocol.encode(cmd.args)

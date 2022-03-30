@@ -1,8 +1,7 @@
-"""Second pass of protocol validation, pattern parsing and convertion to class objects.
-"""
+"""Second pass of protocol validation, pattern parsing and convertion to class objects."""
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 import voluptuous as vol  # type: ignore
 
@@ -13,8 +12,9 @@ from .pattern import parse_pattern
 
 
 def validate_arg_pass2(arg: dict[(str, Any)]) -> ArgDef:
-    """Validates that the provided default and example are valid against the argument rules.
-    Converts argument to class
+    """Validate that the provided default and example are valid against the argument rules.
+
+    Convert argument to class.
     """
     validator = vol.Range(min=arg["min"], max=arg["max"])
     if "values" in arg:
@@ -28,8 +28,9 @@ def validate_arg_pass2(arg: dict[(str, Any)]) -> ArgDef:
 
 
 def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
-    """Validates a protocol definition at a integral level.
-    Validity of patterns and arguments references
+    """Validate a protocol definition at a integral level.
+
+    Validity of patterns and arguments references.
     """
 
     t_slots = list(proto["timings"][0])
@@ -42,7 +43,7 @@ def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
 
     # check timings variables and blocks
 
-    def value_or_valid_arg(value: Union[str, int]) -> ValueOrArg:
+    def value_or_valid_arg(value: str | int) -> ValueOrArg:
 
         data = ValueOrArg()
 
@@ -102,7 +103,7 @@ def validate_protocol_pass2(proto: dict[(str, Any)]) -> dict[(str, Any)]:
 
 
 def protocol_class(value: dict[(str, Any)]) -> dict[str, CodecDef]:
-    """Converts to dict of CodecDef objects"""
+    """Convert to dict of CodecDef objects."""
     result = {}
 
     for name, proto in value.items():

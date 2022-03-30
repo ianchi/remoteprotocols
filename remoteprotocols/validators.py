@@ -1,9 +1,9 @@
-"""General validator utilities"""
+"""General validator utilities."""
 
 from __future__ import annotations
 
 import re
-from typing import Any, Callable, List, Union, cast
+from typing import Any, Callable, cast
 
 import voluptuous as vol  # type: ignore
 
@@ -23,7 +23,9 @@ BITS_VALUES = {
 
 def remove_quotes(value: Any) -> Any:
     """If the value is a string with leading quotes, extracts and returns the inner value.
-    In any other case returns the value unchanged"""
+
+    In any other case returns the value unchanged
+    """
     if isinstance(value, str):
         # remove quotes
         re_quote = re.compile(r"^\s*([\"\'])((?:(?!\1).|\\\1)*)(?<!\\)\1\s*$")
@@ -36,7 +38,9 @@ def remove_quotes(value: Any) -> Any:
 
 def coerce_string(value: Any) -> str:
     """Coerce primitive value to string.
-    If it is a string with leading quotes, remove them"""
+
+    If it is a string with leading quotes, remove them
+    """
     if isinstance(value, (dict, list)):
         raise vol.Invalid("string value cannot be dictionary or list.")
     if isinstance(value, bool):
@@ -93,13 +97,12 @@ def integer(value: Any) -> int:
 
 
 def valid(value: Any) -> Any:
-    """A validator that is always valid and returns the value as-is."""
+    """Return the value as-is. A validator that is always true."""
     return value
 
 
 def unique_field_value(field: str) -> Callable[[Any], Any]:
-    """Generates a validator to check that objects in a list have a unique value in the
-    provided field"""
+    """Generate a validator to check that objects in a list have a unique value in the provided field."""
 
     def validator(value: Any) -> Any:
         if not isinstance(value, list):
@@ -111,11 +114,13 @@ def unique_field_value(field: str) -> Callable[[Any], Any]:
     return validator
 
 
-def coerce_list(separator: Union[str, None] = None) -> Callable[[Any], list[Any]]:
-    """Converts value to list. Primitives are returned as a one element list.
+def coerce_list(separator: str | None = None) -> Callable[[Any], list[Any]]:
+    """Convert value to list.
+
+    Primitives are returned as a one element list.
     None is converted to an empty list.
     Unquoted strings will be split by separator (respecting quoting semantics)
-    and the values returned as list elements
+    and the values returned as list elements.
     """
 
     def validator(value: Any) -> list[Any]:
@@ -135,7 +140,8 @@ def coerce_list(separator: Union[str, None] = None) -> Callable[[Any], list[Any]
 
 
 def valid_name(value: str) -> str:
-    """Check it is a strict string with valid characters for a name.
+    """Check if it is a strict string with valid characters for a name.
+
     It cannot start with a number.
     """
     return cast(
@@ -151,7 +157,7 @@ def valid_name(value: str) -> str:
 
 
 def kebab_to_pascal(value: str) -> str:
-    """Converts a string from kebab_case to PascalCase"""
+    """Convert a string from kebab_case to PascalCase."""
 
     value = string_strict(value)
 
@@ -159,8 +165,8 @@ def kebab_to_pascal(value: str) -> str:
     return value
 
 
-def alternating_signs(value: list[Union[str, int]]) -> list[Union[str, int]]:
-    """Validates that a list has all alternating positive and negatives elements, skiping argument references"""
+def alternating_signs(value: list[str | int]) -> list[str | int]:
+    """Validate that a list has all alternating positive and negatives elements, skiping argument references."""
     assert isinstance(value, list)
     for i in range(1, len(value)):
 
@@ -175,7 +181,7 @@ def alternating_signs(value: list[Union[str, int]]) -> list[Union[str, int]]:
 
 
 def binary_string(value: Any) -> str:
-    """Validates that value is a valid binary digit"""
+    """Validate that value is a valid binary digit."""
 
     val = coerce_string(value)
 
@@ -187,7 +193,7 @@ def binary_string(value: Any) -> str:
 
 
 def hex_string(value: Any) -> int:
-    """Validates that value is a valid hexadecimal digit and converts it to number"""
+    """Validate that value is a valid hexadecimal digit and converts it to number."""
 
     val = coerce_string(value)
 
@@ -198,10 +204,11 @@ def hex_string(value: Any) -> int:
     return int(val, 16)
 
 
-def quoted_split(text: str, delimiter: str) -> List[str]:
-    """Splits a string by 'delimiter', ignoring it if it is inside quotations
+def quoted_split(text: str, delimiter: str) -> list[str]:
+    """Split a string by 'delimiter', ignoring it if it is inside quotations.
+
     Returns a list of strings with results.
-    Consecutive delimiters are returned as empty string
+    Consecutive delimiters are returned as empty string.
     """
 
     args = []

@@ -1,15 +1,9 @@
 pylint==2.12.2
-flake8==4.0.1
 black==22.1.0
+flake8==4.0.1
+isort==5.10.1
+mypy==0.931
 pyupgrade==2.31.0
 pre-commit
 
 types-PyYAML
-
-# Unit tests
-pytest==7.0.1
-pytest-cov==3.0.0
-pytest-mock==3.7.0
-pytest-asyncio==0.18.1
-asyncmock==0.4.2
-hypothesis==5.49.0

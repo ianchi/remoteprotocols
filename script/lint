@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 set -euxo pipefail
 
 isort remoteprotocols #tests
+pyupgrade --py38-plus remoteprotocols/*.py remoteprotocols/**/*.py
 black --safe remoteprotocols #tests
 pylint remoteprotocols
 flake8 remoteprotocols
