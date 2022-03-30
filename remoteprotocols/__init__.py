@@ -3,4 +3,4 @@
 from .protocol import DecodeMatch, RemoteCommand, SignalData
 from .registry import ProtocolRegistry
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
